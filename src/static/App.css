@@ -1,0 +1,421 @@
+.SingleAdWrap {
+  border: 0.1vmin ridge #F3C31C;
+  margin-top: 1vmin;
+  background-color: #29303D;
+  padding: 0.5vmin;
+
+}
+
+
+.StarBox {
+  background-color: #29303D;
+  display: flex;
+}
+
+.NoStar {
+  background-color: #29303D;
+  ;
+}
+
+.AdWrapper {
+  display: grid;
+}
+
+.Selected {
+  border-bottom: 0.5vmin solid #F3C31C;
+  padding-bottom: 0.5vmin;
+}
+
+.SelectedA {
+  border-bottom: 0.5vmin solid red;
+  padding-bottom: 0.5vmin;
+}
+
+.IconsPad {
+  display: grid;
+
+}
+
+.IconsInnerOne {
+  grid-template-columns: 20% 20% 20% 20%;
+  color: white;
+  padding-top: 1vh;
+  gap:6%
+
+}
+
+.PagePad {
+  background-color: black;
+
+}
+
+.MsgBox {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+
+  margin-top: -10vh;
+  z-index: 4;
+  transition: margin-top 500ms linear;
+}
+
+.MsgText {
+  color: white;
+  padding: 1vh
+}
+
+.MsgTimer {
+  width: 90%;
+  border: 2px solid white;
+  margin: 1vh 5%;
+  transition: width 3s linear;
+}
+
+.White {
+  color: white
+}
+
+.CusLink {
+  text-decoration: none;
+}
+
+.FormWrapper {
+  min-height: 50vh;
+}
+
+.BodyWrapperTwo {
+  padding-left: 1vw;
+  padding-right: 1vw;
+}
+
+.SideBySide {
+  display: grid;
+  grid-template-columns: 50% 50%;
+
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 10s linear;
+  }
+}
+
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.Center {
+  display: grid;
+}
+
+.Center.Vertically {
+  align-items: center;
+}
+
+.Horizontally {
+  justify-content: center;
+}
+
+.LandingA {
+  background-color: black;
+  height: 100vh;
+  width: 50vw;
+  overflow: hidden;
+  position: relative;
+
+}
+
+.Earth {
+  width: 10vw;
+  height: 10vw;
+}
+
+.Orbit {
+  border: 0.2vmin solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  border-radius: 50%;
+  transition: border 0.3s ease;
+}
+
+.Tether {
+  left: 60vw;
+  top: -20vw;
+  padding: 20vw;
+  animation: animateT 10s linear infinite;
+}
+
+.Usd {
+  left: 45vw;
+  top: -35vw;
+  padding: 35vw;
+  animation: animateT 15s linear infinite;
+}
+
+.Yuan {
+  left: 30vw;
+  top: -50vw;
+  padding: 50vw;
+  animation: animateT 20s linear infinite;
+}
+
+.MainWrapper {
+  display: grid;
+}
+
+.Eur {
+  left: 15vw;
+  top: -65vw;
+  padding: 65vw;
+  animation: animateT 25s linear infinite;
+}
+
+
+.CurrIcon {
+  font-size: 6vw;
+  color: green;
+  position: absolute;
+  left: -3vw;
+}
+
+.TetherI {
+  animation: animateTI 10s linear infinite;
+}
+
+.UsdI {
+  animation: animateTI 15s linear infinite;
+}
+
+.YuanI {
+  animation: animateTI 20s linear infinite;
+}
+
+.EurI {
+  animation: animateTI 25s linear infinite;
+}
+
+.RatesImg {
+  width: 70vw;
+}
+
+
+@keyframes animateT {
+  0% {
+    transform: rotateZ(0deg)
+  }
+
+  100% {
+    transform: rotateZ(360deg)
+  }
+}
+
+@keyframes animateTI {
+  0% {
+    transform: rotateZ(360deg)
+  }
+
+  100% {
+    transform: rotateZ(0deg)
+  }
+}
+
+
+
+@media screen and (max-width : 600px) {
+  .LandingA {
+    width: 100vw;
+    height: 112vw;
+  }
+
+  .Earth {
+    width: 20vw;
+    height: 20vw;
+  }
+
+  .BodyWrapper {
+    padding-top: 6vh;
+  }
+
+  .BodyWrapperTwo {
+    padding-top: 7vh;
+  }
+
+  .FormWrapper {
+    width: 90vw;
+  }
+
+  .PagePad {
+    padding-top: 6vh;
+  }
+
+  .IconsInnerOne {
+    font-size: 0.7em;
+  }
+
+  .SingleAdWrap {
+    width: 95vw;
+    height: 47vw;
+  }
+
+  .StarWrapper {
+    font-size: 3.9vw;
+  }
+
+  .StarBox {
+    gap: 5.1vw;
+  }
+}
+
+@media screen and (max-width : 1024px) and (min-width: 601px) {
+  .PagePad {
+    padding-top: 4vh;
+  }
+
+  .BodyWrapper {
+    padding-top: 3vh;
+  }
+
+  .LandingA {
+    width: 100vw;
+    height: 112vw;
+  }
+
+  .Earth {
+    width: 20vw;
+    height: 20vw;
+  }
+
+  .BodyWrapperTwo {
+    padding-top: 5vh;
+  }
+
+  .FormWrapper {
+    width: 60vw;
+  }
+
+  .AdWrapper {
+    grid-template-columns: 50% 50%;
+  }
+
+  .SingleAdWrap {
+    width: 45vw;
+    height: 22vw;
+  }
+
+  .StarWrapper {
+    font-size: 1.5vw;
+  }
+
+  .StarBox {
+    gap: 2.63vw;
+  }
+}
+
+@media screen and (min-width : 1025px) {
+  .PagePad {
+    padding-top: 7vh;
+  }
+
+  .BodyWrapper {
+    padding-top: 4vh;
+    background-color: black;
+  }
+
+  .BodyWrapperTwo {
+    padding-top: 9vh;
+  }
+
+  .Tether {
+    left: 30vw;
+    top: -10vw;
+    padding: 10vw;
+  }
+
+  .Usd {
+    left: 23vw;
+    top: -17vw;
+    padding: 17vw
+  }
+
+  .Yuan {
+    left: 15vw;
+    top: -25vw;
+    padding: 25vw
+  }
+
+
+  .Eur {
+    left: 7vw;
+    top: -33vw;
+    padding: 32vw
+  }
+
+  .CurrIcon {
+    font-size: 3vw;
+    left: -1.5vw
+  }
+
+  .MainWrapper {
+    grid-template-columns: 50% 50%;
+  }
+
+  .RatesImg {
+    width: 35vw;
+  }
+
+  .FormWrapper {
+    width: 40vw;
+  }
+
+  .IconsPad {
+    grid-template-columns: 50% 50%;
+  }
+
+  .AdWrapper {
+    grid-template-columns: 33% 33% 33%;
+  }
+
+  .SingleAdWrap {
+    width: 30vw;
+    height: 15vw
+  }
+
+  .StarWrapper {
+    font-size: 1vw;
+  }
+
+  .StarBox {
+    gap: 1.5vw;
+  }
+
+}
