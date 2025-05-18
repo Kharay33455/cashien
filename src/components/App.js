@@ -4,6 +4,8 @@ import Rates from "./Rates";
 import Login from "./Login";
 import Register from "./Register";
 import Activity from "./subs/Activity";
+import Profile from "./Profile";
+import Verification from "./Verification";
 import { HashRouter, Routes, Route, Link } from "react-router";
 import { useState, createContext, useRef, useEffect } from "react";
 import env from "react-dotenv";
@@ -17,8 +19,10 @@ function App() {
   const [fetching, SetF] = useState(true);
   const closeBtn = useRef(null);
   const cusGold = "#F3C31C"
+  const cusBlack = "#29303D"
+  const cusGray = "rgb(200,200,200)";
   const BH = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_BH_DEV : env.REACT_APP_BH_PROD;
-  const cookie = document.cookie.split("token=")[document.cookie.split("token=").length - 1]
+  const [cookie, SetCookie] = useState(document.cookie.split("token=")[document.cookie.split("token=").length - 1]);
 
   const SignOut = async () => {
     const resp = await fetch(BH + "/cashien/logout",
@@ -57,7 +61,7 @@ function App() {
   return (
     <div>
 
-      <GlobalContext.Provider value={{ 'user': user, 'SetUser': SetUser, "BH" : BH, 'cusGold' : cusGold, "cookie":cookie }}>
+      <GlobalContext.Provider value={{ 'user': user, 'SetUser': SetUser, "BH" : BH, 'cusGold' : cusGold, "cookie":cookie,"SetCookie":SetCookie, "cusBlack" : cusBlack, 'cusGray':cusGray, "fetching" : fetching }}>
         <HashRouter>
           <nav className="navbar navbar-dark bg-dark fixed-top">
             <div className="container-fluid">
@@ -96,7 +100,9 @@ function App() {
                         user ?
                           <div className="SideBySide" style={{ marginTop: "5%" }}>
                             <div className="Center Horizontally Vertically">
-                              <Link className="Link White" to="/" onClick={() => { closeBtn.current.click() }}>
+                              <Link className="Link White" to="/profile" onClick={() => { 
+                                closeBtn.current.click();
+                                }}>
                                 <span className="btn btn-success">
                                   Profile
                                 </span>
@@ -147,7 +153,9 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/rates" element={<Rates />} />
             <Route path="/login/:from" element={<Login />} />
-            {<Route path="/register/:from" element={<Register />} />}
+            <Route path="/register/:from" element={<Register />} />
+            <Route path="/profile" element={<Profile/>}/>
+            <Route path="/verification/*" element = {<Verification/>}/>
 
           </Routes>
         </HashRouter>

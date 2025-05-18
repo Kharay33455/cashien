@@ -1,3 +1,34 @@
+*{
+  font-family: Helvetica, Arial,  sans-serif
+}
+
+.Underline {
+  border-bottom:5px solid transparent;
+}
+.Gold{
+  border-color:#F3C31C
+}
+.Green{
+  border-color:green;
+}
+
+.button {
+  padding: 1vmin 2vmin;
+  border-radius: 2vmin;
+  font-weight: 900;
+  font-size: 1.3em
+}
+
+.TextAndIcon {
+  display: flex;
+  align-items: center;
+  gap: 1vw
+}
+
+.InputBox {
+  display: grid;
+}
+
 .SingleAdWrap {
   border: 0.1vmin ridge #F3C31C;
   margin-top: 1vmin;
@@ -5,6 +36,46 @@
   padding: 0.5vmin;
 
 }
+
+input {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  /* or 6px */
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: white;
+  color: #333;
+  width: 100%;
+  /* Optional: full width */
+  box-sizing: border-box;
+}
+
+input:focus {
+  border-color: #007BFF;
+  /* Blue focus border */
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  /* Subtle glow */
+}
+
+input::placeholder {
+  color: #aaa;
+  opacity: 1;
+  /* Ensures full opacity */
+}
+
+input.dark {
+  background-color: #1e1e1e;
+  color: #eee;
+  border: 1px solid #444;
+}
+
+input.dark:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 0 3px rgba(102, 175, 233, 0.5);
+}
+
 
 
 .StarBox {
@@ -40,8 +111,7 @@
   grid-template-columns: 20% 20% 20% 20%;
   color: white;
   padding-top: 1vh;
-  gap:6%
-
+  gap: 6%
 }
 
 .PagePad {
@@ -73,6 +143,10 @@
 
 .White {
   color: white
+}
+
+.Black {
+  color: black
 }
 
 .CusLink {
@@ -203,7 +277,7 @@
 
 .CurrIcon {
   font-size: 6vw;
-  color: green;
+  color: #F3C31C;
   position: absolute;
   left: -3vw;
 }
@@ -294,6 +368,14 @@
   .StarBox {
     gap: 5.1vw;
   }
+
+  input.dark {
+    font-size: 1.1em;
+  }
+
+  .InputBox {
+    grid-template-rows: 35% 30% 35%
+  }
 }
 
 @media screen and (max-width : 1024px) and (min-width: 601px) {
@@ -338,6 +420,15 @@
 
   .StarBox {
     gap: 2.63vw;
+  }
+
+  input.dark {
+
+    font-size: 2em;
+  }
+
+  .InputBox {
+    grid-template-columns: 40% 20% 40%
   }
 }
 
@@ -418,4 +509,11 @@
     gap: 1.5vw;
   }
 
+  input.dark {
+    font-size: 1.3em;
+  }
+
+  .InputBox {
+    grid-template-columns: 45% 10% 45%
+  }
 }

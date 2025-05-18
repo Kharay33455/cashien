@@ -39,7 +39,7 @@ const Index = () => {
                     <div style={{ position: "absolute", width: "100%" }}>
                         <div style={{ color: "white" }} className="Center Horizontally">
                             <Link to={globalData.user ? "/rates" : "/login/rates"} className="CusLink">
-                            <span style={{ fontWeight: "700", fontSize:"1.2em", backgroundColor:"green", borderRadius:"50vw", padding:"1vmin 2vmin", cursor:"pointer", position:"relative", zIndex:"2" }} className="White">
+                            <span style={{ fontWeight: "700", fontSize:"1.2em", backgroundColor:globalData.cusGold, borderRadius:"50vw", padding:"1vmin 2vmin", cursor:"pointer", position:"relative", zIndex:"2" }} className="Black">
                                 Proceed
                             </span>
                             </Link>

@@ -69,6 +69,7 @@ const Register = () => {
         if (resp.status === 200) {
             globalData.SetUser(res['cus']);
             document.cookie = "token=" + res['key'] + "; path=/; expires=Fri, 31 Dec 2025 23:59:59 GMT";
+            globalData.SetCookie(res['key'])
             params.from === "index" ? navigate("/") : navigate("/" + params.from);
         }
         else if (resp.status === 403) {
