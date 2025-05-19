@@ -49,9 +49,12 @@ const Profile = () => {
                                     @{globalData.user.user}
                                 </span>
                                 {
-                                    globalData.user.isVerified ? <RiVerifiedBadgeFill /> : <Link to="/verification" style={{ cursor: "pointer" }}>
-                                        Complete your registration
-                                    </Link>
+                                    (globalData.user !== undefined && globalData.user.emailVerified && globalData.user.idDocs !== null && globalData.user.idApproved && globalData.user.selfie !== null && globalData.user.selfieApproved) ?
+
+                                        <RiVerifiedBadgeFill /> :
+                                        <Link to="/verification" style={{ cursor: "pointer" }}>
+                                            Complete your registration
+                                        </Link>
                                 }
 
                             </div>

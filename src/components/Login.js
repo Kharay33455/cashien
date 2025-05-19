@@ -89,7 +89,7 @@ const Login = () => {
                         <small>
                             Don't have an account?&nbsp;
                             <Link to={"/register/" + params['from']}>
-                                Sign in instead.
+                                Register.
                             </Link>
                         </small>
                     </div>

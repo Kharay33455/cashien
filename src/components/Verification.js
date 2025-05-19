@@ -1,3 +1,4 @@
+import { FaRegIdCard, FaCamera } from "react-icons/fa";
 import { DisplayMessage } from "./AuxFuncs";
 import Activity from "./subs/Activity";
 import { useContext, useState, useEffect } from "react";
@@ -9,10 +10,33 @@ const Verification = () => {
     console.log(globalData);
     const [sendingMail, SetSM] = useState(false);
     const navigate = useNavigate();
+    const [IDCard, SetIDC] = useState(null);
+    const [selfie, SetSelfie] = useState(null);
+    const [SendingDoc, SetSD] = useState(false);
 
     const emailJsScript = document.createElement("script");
     const params = useParams();
 
+
+    const EncodeFile = (inputTag) => {
+
+        const imgField = document.getElementById(inputTag).files[0];
+
+        if (imgField && imgField.type.startsWith("image/")) {
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgInBase64 = e.target.result;
+                if (inputTag === "idcard") {
+                    SetIDC(imgInBase64);
+                }
+                else {
+                    SetSelfie(imgInBase64);
+                }
+            }
+            reader.readAsDataURL(imgField);
+        };
+    }
 
 
     const SendVerEmail = async () => {
@@ -63,7 +87,49 @@ const Verification = () => {
     };
 
 
+    const SubmitDoc = async (verType) => {
+        SetSD(true);
+        const image = verType === "idDocs" ? IDCard : selfie
+        const resp = await fetch(globalData.BH + "/cashien/verify-id",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": globalData.cookie
+                },
+                body: JSON.stringify({ "image": image, "verType": verType })
+            }
+        );
+        if (resp.status === 200) {
+            const result = await resp.json();
+            globalData.SetUser(prevUser => ({ ...prevUser, idDocs: result['idDocs'], selfie: result['selfie'] }));
+            DisplayMessage("Identification documents received", "green");
+            SetSD(false);
+        }
+        else if (resp.status === 204) {
+            DisplayMessage("Your session has expired. Sign in to continue.", "red");
+            SetSD(false);
+        }
+        else {
+            DisplayMessage("An unexpected error has occured", "red");
+            SetSD(false);
+        }
+    };
 
+
+
+
+    const AwaitingConfirmation = () => {
+        return (
+
+            <div>
+                <p>
+                    No further action is required on your part. We will contact you via email once your document has been verified, which will take no more than one hour.
+                </p>
+            </div>
+
+        )
+    }
 
     const ConfirmEmail = () => {
         //    const params = useParams();
@@ -84,8 +150,9 @@ const Verification = () => {
                     const results = await resp.json();
                     if (resp.status === 200) {
                         DisplayMessage("Verification Successful", "green");
-                        globalData.SetUser(results['cus_data']);
+                        globalData.SetUser(results['user']);
                         document.cookie = "token=" + results['key'] + "; path=/; expires=Fri, 31 Dec 2025 23:59:59 GMT";
+                        globalData.SetCookie(results['key']);
                         navigate("/verification");
                     } else {
                         DisplayMessage("Verification failed.", "red");
@@ -97,7 +164,7 @@ const Verification = () => {
         return (
             <div style={{ padding: "0 3vw" }}>
                 <div style={{ width: "100%" }}>
-                    <EmailVerHeader />
+                    <VerHeader params={{ "verType": "Email" }} />
                 </div>
                 <div style={{ height: "50vh" }} className="Center Vertically">
                     <div style={{ transform: "scale(4)" }}>
@@ -108,15 +175,6 @@ const Verification = () => {
         )
     }
 
-    const EmailVerHeader = () => {
-        return (
-            <div>
-                <span style={{ borderBottom: "0.5vmin solid " + globalData.cusGold, fontSize: "1.5em", fontWeight: "600" }}>
-                    Email Verification&nbsp;
-                </span>
-            </div>
-        )
-    }
 
     const EmailVerification = () => {
         useEffect(() => {
@@ -130,7 +188,7 @@ const Verification = () => {
         return (
             <div style={{ padding: "0 2vw" }}>
                 <div style={{ width: "100%" }}>
-                    <EmailVerHeader />
+                    <VerHeader params={{ "verType": "Email" }} />
                     <div className="Center Horizontally" style={{ marginTop: "10vh", background: globalData.cusBlack, padding: "5vh 1vh" }}>
                         <div>
 
@@ -167,6 +225,176 @@ const Verification = () => {
     }
 
 
+    const IdVerification = () => {
+        return (
+            <div style={{ padding: "0 2vw" }}>
+                <VerHeader params={{ "verType": "Identity" }} />
+                {
+                    (globalData.user !== undefined && globalData.user.idDocs !== null) ?
+
+                        <AwaitingConfirmation />
+
+                        :
+                        <div>
+                            <div style={{ paddingTop: "1vh" }}>
+                                <p>
+                                    Please upload either one of the two documents, but not both.
+                                </p>
+                            </div>
+                            <div>
+                                <ul>
+                                    <li>
+                                        National Identity card.
+                                    </li>
+                                    <li>
+                                        International Passport
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                }
+                <UploadID />
+            </div>
+        );
+    }
+
+    const SelfieVerification = () => {
+        return (
+            <div style={{ padding: "0 2vw" }}>
+                <input type="file" accept="image/*" id="selfie" hidden capture="user" onChange={() => {
+                    EncodeFile("selfie");
+                }} />
+                <VerHeader params={{ "verType": "Selfie" }} />
+                <br />
+                {
+                    (globalData.user !== undefined && globalData.user.selfie !== null) ?
+
+                        <AwaitingConfirmation />
+                        :
+                        <div>
+                            <p>
+                                Take a selfie that clearly matches your identity documents. To ensure it meets verification standards, make sure:
+                            </p>
+                            <ul>
+                                <li>
+                                    <strong>Good Lighting:</strong> Make sure your face is well-lit and clearly visible. Avoid strong shadows or backlighting.
+                                </li>
+
+                                <li>
+                                    <strong>Face Centered:</strong> Keep your face centered within the frame. Avoid tilting your head too much.
+                                </li>
+                                <li>
+                                    <strong>Neutral Expression:</strong> Keep a neutral expression and avoid wearing glasses or hats unless required.
+                                </li>
+
+                                <li>
+                                    <strong>Clear Background:</strong> Ensure there are no distractions behind you, focusing only on your face.
+                                </li>
+
+                                <li>
+                                    <strong>Steady Camera:</strong> Hold the camera steady to avoid blurry images.
+                                </li>
+                            </ul>
+                        </div>
+                }
+                <div className="Center Horizontally">
+
+                    <div className="IdBox Center Vertically Horizontally">
+
+                        <div className="SelfieMain">
+                            {
+                                (globalData.user !== undefined && globalData.user.selfie !== null) ?
+
+                                    <img src={globalData.BH + globalData.user.selfie} className="IdBox" style={{ border: "none", transform: "scale(0.8)", margin: "0" }} alt="Selfie" />
+
+                                    :
+                                    (
+                                        selfie === null ?
+
+                                            <label for="selfie">
+                                                <FaCamera />
+                                            </label>
+                                            :
+                                            <img src={selfie} className="IdBox" style={{ border: "none", transform: "scale(0.8)", margin: "0" }} alt="Selfie" />
+                                    )}
+
+                        </div>
+
+                        <div className="SelfieHelpText">
+                            <p style={{ textAlign: "center" }}>
+                                Sign in on a mobile device with camera access to complete your final verification step.
+                            </p>
+                        </div>
+
+                    </div>
+                    {
+                        !(globalData.user !== undefined && globalData.user.selfie !== null) &&
+
+                        <div className="Center Vertically Horizontally SelfieMain">
+                            <button className="btn btn-primary" onClick={() => {
+                                SubmitDoc("selfie");
+                            }}>
+                                {
+                                    SendingDoc ? <Activity /> : "Upload"
+                                }
+                            </button>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        )
+    }
+
+    const UploadID = () => {
+
+        return (
+            <div className="Center Horizontally">
+                <input type="file" accept="image/*" id="idcard" hidden onChange={() => { EncodeFile("idcard") }} />
+                <div className="IdBox Center Vertically Horizontally">
+                    <label for="idcard">
+                        {
+                            (globalData.user !== undefined && globalData.user.idDocs !== null) ?
+                                <img src={globalData.BH + globalData.user.idDocs} className="IdBox" style={{ border: "none", transform: "scale(0.8)", margin: "0" }} alt="ID DOC" />
+                                :
+
+                                (
+                                    IDCard === null ?
+                                        <FaRegIdCard />
+                                        :
+                                        <img src={IDCard} className="IdBox" style={{ border: "none", transform: "scale(0.8)", margin: "0" }} alt="ID DOC" />
+                                )
+                        }
+                    </label>
+                </div>
+                <div className="Center Horizontally">
+                    {
+                        !(globalData.user !== undefined && globalData.user.idDocs !== null) &&
+                        <button className="btn btn-primary" onClick={() => {
+                            if (IDCard !== null) {
+                                SubmitDoc("idDocs");
+                            }
+                        }}>
+                            {
+                                SendingDoc ? <Activity /> : "Upload"
+                            }
+                        </button>
+                    }
+                </div>
+                <br />
+            </div>
+        )
+    }
+
+    const VerHeader = ({ params }) => {
+        return (
+            <div>
+                <span style={{ borderBottom: "0.5vmin solid " + globalData.cusGold, fontSize: "1.5em", fontWeight: "600" }}>
+                    {params.verType} Verification&nbsp;
+                </span>
+            </div>
+        )
+    }
 
     const VerStep = () => {
         return (
@@ -230,8 +458,13 @@ const Verification = () => {
 
 
     useEffect(() => {
+        function hasTouchSupport() {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+        console.log(hasTouchSupport())
+
         const card = document.getElementById("fullCard");
-        card.style.left = globalData.user !== undefined ? ((globalData.user.emailVerified && globalData.user.idDocs === null) ? "-100%" : (globalData.user.emailVerified && globalData.user.idDocs !== null) ? "-200%" : "0%") : "0%"
+        card.style.left = globalData.user !== undefined ? ((globalData.user.emailVerified && (globalData.user.idDocs === null || !globalData.user.idApproved)) ? "-100%" : (globalData.user.emailVerified && globalData.user.idDocs !== null && globalData.user.idApproved) ? "-200%" : "0%") : "0%"
 
     }, [globalData.user]);
 
@@ -259,26 +492,32 @@ const Verification = () => {
                     </div>
 
                     <div className="Center Vertically">
-                        step2 to verify
+                        <IdVerification />
                     </div>
 
-                    <div className="Center Vertically">
+                    <div className="Center Vertically" style={{ padding: "0vh 2vw", margin: "5vh 0" }}>
                         {
                             globalData.user !== undefined ?
                                 (
-                                    (globalData.user.emailVerified && globalData.user.idDocs !== null && globalData.user.selfie !== null) ?
+                                    (globalData.user.emailVerified && globalData.user.idDocs !== null && globalData.user.selfie !== null && globalData.user.idApproved && globalData.user.selfieApproved) ?
 
-                                        "You have been verified" :
+                                        <div style={{ background: globalData.cusBlack, height: "50vh" }} className="Center Vertically Horizontally">
+                                            <p style={{ fontSize: "2em", backgroundColor: "green", padding: "2vh 4vh", borderRadius: "1vw" }}>
+                                                You have been verified.
+                                            </p>
+                                        </div>
+                                        :
 
-                                        <p>
-                                            Step 3 to verify
-                                        </p>)
+                                        <SelfieVerification />
+
+                                )
                                 :
                                 <p>
-                                    Sign in
+                                    Your session has expired. Sign in again to continue.
                                 </p>
                         }
                     </div>
+
                 </div>
 
             </div>

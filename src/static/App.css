@@ -1,15 +1,23 @@
-*{
-  font-family: Helvetica, Arial,  sans-serif
+.IdBox {
+  border: 2px solid #F3C31C;
+  margin: 5vmin;
+  font-size: 3em
+}
+
+* {
+  font-family: Helvetica, Arial, sans-serif
 }
 
 .Underline {
-  border-bottom:5px solid transparent;
+  border-bottom: 5px solid transparent;
 }
-.Gold{
-  border-color:#F3C31C
+
+.Gold {
+  border-color: #F3C31C
 }
-.Green{
-  border-color:green;
+
+.Green {
+  border-color: green;
 }
 
 .button {
@@ -341,7 +349,7 @@ input.dark:focus {
   }
 
   .BodyWrapperTwo {
-    padding-top: 7vh;
+    padding-top: 9vh;
   }
 
   .FormWrapper {
@@ -375,6 +383,15 @@ input.dark:focus {
 
   .InputBox {
     grid-template-rows: 35% 30% 35%
+  }
+
+  .IdBox {
+    width: 80vw;
+    height: 53vw;
+  }
+
+  .SelfieHelpText {
+    display: none;
   }
 }
 
@@ -429,6 +446,15 @@ input.dark:focus {
 
   .InputBox {
     grid-template-columns: 40% 20% 40%
+  }
+
+  .IdBox {
+    width: 70vw;
+    height: 48vw;
+  }
+
+  .SelfieHelpText {
+    display: none;
   }
 }
 
@@ -515,5 +541,14 @@ input.dark:focus {
 
   .InputBox {
     grid-template-columns: 45% 10% 45%
+  }
+
+  .IdBox {
+    width: 50vw;
+    height: 33vw;
+  }
+
+  .SelfieMain {
+    display: none;
   }
 }
