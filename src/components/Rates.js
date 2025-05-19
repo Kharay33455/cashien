@@ -27,7 +27,7 @@ const Rates = () => {
 
     const [currIndex, SetCI] = useState(singleDisplayCount);    // how much data has been read so far
     const [filter, SetFilter] = useState("Ratings");    // sort by 
-    const [Ascending, SetAsc] = useState(false);    // sort order
+    const [Ascending, SetAsc] = useState(true);    // sort order
 
     const [selected, SetSelected] = useState(null);
 
@@ -445,7 +445,6 @@ const Rates = () => {
                     (item.currency === "1" && USD) || (item.currency === "2" && CNY) || (item.currency === "3" && EUR)
                 );
                 SetALTD(newList.slice(0, singleDisplayCount));
-                SetSelected(newList[0]);
             }
         }
     }, [AdList, CNY, USD, EUR]);
