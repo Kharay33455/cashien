@@ -484,18 +484,18 @@ const Verification = () => {
             <div style={{ position: "relative", marginTop: "2vh" }}>
 
                 <div style={{ color: "white", display: "grid", gridTemplateColumns: "33.3% 33.3% 33.3%", width: "300%", position: "absolute", top: "0%", transition: "left 3s ease-in-out" }} id="fullCard">
-                    <div className="Center Vertically">
+                    <div className="Center">
                         <Routes>
                             <Route path="/" element={<EmailVerification />} />
                             <Route path="/:otp" element={<ConfirmEmail />} />
                         </Routes>
                     </div>
 
-                    <div className="Center Vertically">
+                    <div className="Center">
                         <IdVerification />
                     </div>
 
-                    <div className="Center Vertically" style={{ padding: "0vh 2vw", margin: "5vh 0" }}>
+                    <div className="Center" style={{ padding: "0vh 2vw", margin: "5vh 0" }}>
                         {
                             globalData.user !== undefined ?
                                 (

@@ -34,23 +34,34 @@ export const DisplayMessage = (message, messageType) => {
 }
 
 
-export const addComma = (number) =>{
+export const addComma = (number) => {
     const numAsStr = number.toString();
     const strLen = numAsStr.length;
-    
-    if(strLen < 4){
+
+    if (strLen < 4) {
         return numAsStr;
     }
 
     let commaFmt = "";
-    Array.from(numAsStr).forEach((item, index)=>{
-        if((strLen - index) %3 === 0 && index !== 0){
+    Array.from(numAsStr).forEach((item, index) => {
+        if ((strLen - index) % 3 === 0 && index !== 0) {
             commaFmt = commaFmt + "," + item;
         }
-        else{
+        else {
             commaFmt = commaFmt + item;
         }
-        console.log(item, index, strLen);
-    })
+    });
     return commaFmt;
+}
+
+export const formatNumber = (inputNumber) => {
+    const number = inputNumber.toString();
+    const acceptables = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    let final = "";
+    Array.from(number.toString()).forEach(item => {
+        if (acceptables.includes(item)) {
+            final += item;
+        }
+    });
+    return final;
 }

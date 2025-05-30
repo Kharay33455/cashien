@@ -1,3 +1,5 @@
+import { MdSmsFailed } from "react-icons/md";
+import { MdOutlinePending } from "react-icons/md";
 import { FaRegEye, FaRegEyeSlash, FaCheck } from "react-icons/fa";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useContext, useState, useEffect } from "react";
@@ -14,6 +16,7 @@ const Profile = () => {
 
     useEffect(() => {
         (async function () {
+
             if (globalData.user === undefined && !globalData.fetching) {
                 DisplayMessage("Sign in to continue.", "red");
                 navigate("/login/profile");
@@ -35,6 +38,8 @@ const Profile = () => {
             }
         })();
     }, [globalData.cookie, globalData.BH, globalData.user, navigate, globalData.fetching]);
+
+    
     return (
         <div>
 
@@ -69,7 +74,7 @@ const Profile = () => {
                                     </span>
                                     <span onClick={() => {
                                         isVisible ? SetIV(false) : SetIV(true);
-                                    }}>
+                                    }} style={{cursor:"pointer"}}>
                                         {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
                                     </span>
                                 </div>
@@ -77,7 +82,7 @@ const Profile = () => {
                             <div>
                                 <span style={{ fontSize: "2em", fontWeight: "900", color: "white" }}>
                                     {
-                                        isVisible ? globalData.user.balance : "****"
+                                        isVisible ? addComma(globalData.user.balance.toString().split(".")[0]) + "." + (globalData.user.balance.toString().split(".")[1] ? globalData.user.balance.toString().split(".")[1].substring(0, 3) : "00") : "****"
                                     }
 
                                 </span>
@@ -88,21 +93,22 @@ const Profile = () => {
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "50% 50%", paddingTop: "3vh" }}>
                                 <div className="Center Vertically Horizontally">
-                                    <span style={{ background: globalData.cusGold }} className="button">
+                                    <Link to="/transactions/deposit" style={{ background: globalData.cusGold, cursor:"pointer", color:"black", textDecoration:"none" }} className="button">
                                         Deposit
-                                    </span>
+                                    </Link>
                                 </div>
                                 <div className="Center Vertically Horizontally">
-                                    <span style={{ background: globalData.cusGray, color: "white" }} className="button">
+                                    <Link to="/transactions/withdrawal" style={{ background: globalData.cusGray, color: "white" , cursor:"pointer", textDecoration:"none" }} className="button">
                                         Withdraw
-                                    </span>
+                                    </Link>
                                 </div>
                             </div>
 
                         </div>
                         <br />
-                        <div style={{ padding: "2vw 2vw", backgroundColor: globalData.cusBlack, minHeight: "60vh" }}>
-                            <h2 style={{ color: "white", borderBottom: "2px solid " + globalData.cusGold, padding: "0.6vh" }}>
+                        <div style={{ backgroundColor: globalData.cusBlack }}>
+
+                            <h2 style={{ color: "white", borderBottom: "2px solid " + globalData.cusGold, padding: "0.6vh" }} id="history">
                                 History
                             </h2>
                             <div>
@@ -115,6 +121,8 @@ const Profile = () => {
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                        <div style={{ padding: "2vw 2vw", backgroundColor: "black", minHeight: "60vh" }}>
                             <div style={{ color: globalData.cusGray }}>
                                 {
                                     Trades === null ? <Activity />
@@ -123,18 +131,23 @@ const Profile = () => {
                                             <p style={{ fontWeight: "900", fontSize: "2em" }}>
                                                 Nothing to see here.
                                             </p> :
-                                            Trades.trades.map((item, index) =>
-                                                <div style={{ border: "1px solid " + globalData.cusGold, padding: "1vw 3vw", marginBottom: "2vh" }} key={index}>
-                                                    <div class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h5 class="mb-1">@{item.buyerId === globalData.user.user ? item.sellerId : item.buyerId}</h5>
-                                                            <small style={{ color: globalData.cusGray }}>{new Date(item.time).toLocaleString()}</small>
+                                            <div style={{ background: "black" }}>
+                                                {
+                                                    Trades.trades.map((item, index) =>
+                                                        <div style={{ border: "1px solid " + globalData.cusGold, padding: "1vw 3vw", marginBottom: "2vh", background: globalData.cusBlack, cursor:"pointer" }} key={index} onClick={() => { navigate("/trade/" + item['tradeId']) }}>
+                                                            <div class="list-group-item list-group-item-action">
+                                                                <div class="d-flex w-100 justify-content-between">
+                                                                    <h5 class="mb-1">@{item.buyerId === globalData.user.user ? item.sellerId : item.buyerId}</h5>
+                                                                    <small style={{ color: globalData.cusGray }}>{new Date(item.time).toLocaleString()}</small>
+                                                                </div>
+                                                                <p class="mb-1">{item.buyerId === globalData.user.user ? <span style={{ color: "green" }}>Bought</span> : <span style={{ color: "red" }}>Sold</span>} {addComma(item.amount.split(".")[0])}.{item.amount.split(".")[1] ? item.amount.split(".")[1] : "00"} USDT at {item.rates.substring(0, 4)}/{item.currency === "1" && "USD"}{item.currency === "2" && "CNY"}{item.currency === "3" && "EUR"}</p>
+                                                                {item.successful && <FaCheck style={{ color: "green" }} />}
+                                                                {item.successful === null && <MdOutlinePending style={{ color: globalData.cusGold }} />}
+                                                                {item.successful === false && <MdSmsFailed style={{ color: "red" }} />}
+                                                            </div>
                                                         </div>
-                                                        <p class="mb-1">{item.buyerId === globalData.user.user ? <span style={{ color: "green" }}>Bought</span> : <span style={{ color: "red" }}>Sold</span>} {addComma(item.amount)} USDT at {item.rates.substring(0, 4)}/{item.currency === "1" && "USD"}{item.currency === "2" && "CNY"}{item.currency === "3" && "EUR"}</p>
-                                                        {item.successful && <FaCheck style={{ color: "green" }} />}
-                                                    </div>
-                                                </div>
-                                            )
+                                                    )}
+                                            </div>
                                 }
                             </div>
                         </div>

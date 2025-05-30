@@ -3,18 +3,19 @@ import { FaWindowClose } from "react-icons/fa";
 import { BiDollar } from "react-icons/bi";
 import { MdCurrencyYuan, MdEuro } from "react-icons/md";
 import { FaRegStar } from "react-icons/fa";
-//import { Link } from "react-router";
 import { GlobalContext } from "./App";
-import { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect } from "react";
 import Activity from "./subs/Activity";
 import { FaRegStarHalf } from "react-icons/fa";
 import { addComma } from "./AuxFuncs";
+import { DisplayMessage } from "./AuxFuncs";
+import { useNavigate } from "react-router";
 
 
 // default function
 const Rates = () => {
+    const navigate = useNavigate();
     const alphabets = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
-    const startBox = useRef(null);
     const globalData = useContext(GlobalContext);// global data
     const singleDisplayCount = 50   // how much data is shown at once
 
@@ -30,13 +31,25 @@ const Rates = () => {
     const [Ascending, SetAsc] = useState(true);    // sort order
 
     const [selected, SetSelected] = useState(null);
+    const [initiating, SetInit] = useState(false);
 
 
     // load next {singleDisplayCount} of list
     const loadNext = () => {
-
-        SetALTD([...ALTD, ...AdList.slice(currIndex, currIndex + singleDisplayCount)]);
-        SetCI(currIndex + singleDisplayCount);
+        // filter all ads
+        const newList = AdList.filter((item) =>
+            (item.currency === "1" && USD) || (item.currency === "2" && CNY) || (item.currency === "3" && EUR)
+        )
+        // slice filtered list by next 50
+        const filtered = newList.slice(currIndex, currIndex + singleDisplayCount);
+        // if no more to show
+        if (filtered.length === 0) {
+            DisplayMessage("Ad list fully loaded.", "red");
+        } else {
+            SetALTD(prev => [...prev, ...filtered]);
+            SetCI(currIndex + singleDisplayCount);
+        }
+        return;
     };
 
     // update currency filters
@@ -58,11 +71,58 @@ const Rates = () => {
         }
     }
 
+    // init new transactions
+    const initiateTransaction = async () => {
+        if (initiating) {
+            return;
+        }
+        SetInit(true);
+
+        // fetch details
+        const bankName = document.getElementById("BankName")?.value;
+        const accountNumber = document.getElementById("AccountNumber")?.value;
+        const receiverName = document.getElementById("ReceiverName")?.value;
+        const remark = document.getElementById("Remark")?.value;
+        const amount = document.getElementById("inputusdt")?.value;
+
+        // try to connect to server
+        try {
+            // send info to server
+            const response = await fetch(globalData.BH + "/cashien/init-new-trade/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": globalData.cookie
+                    },
+                    body: JSON.stringify({ "adId": selected['adId'], 'bankName': bankName, "accountNumber": accountNumber, "receiverName": receiverName, "remark": remark, "amount": amount })
+                }
+            );
+            const results = await response.json();
+            // on accept, proceed
+            if (response.status === 200) {
+                globalData.SetUser(prev => ({ ...prev, balance: results['cus_bal'] }));
+                DisplayMessage("Trade initiated.", "green");
+                navigate("/trade/" + results['trade_id']);
+
+            } else if (response.status === 400) {   // bad requests
+                DisplayMessage(results['msg'], "red");
+            } else {
+                DisplayMessage("An unexpected error has occured.", "red");  // unexpected errors
+            }
+            SetInit(false);
+
+        } catch (error) {
+            // cannot connect to server
+            DisplayMessage("An unexpected error has occured.", "red");
+            SetInit(false);
+        }
+    };
+
     // sort list by chosen category. Default is ratings
     const sortList = (toggle) => {
-        SetALTD(null);
-
-        toggle === filter ? (Ascending ? SetAsc(false) : SetAsc(true)) : SetFilter(toggle);
+        SetALTD(null);// show loading screen while setting the list
+        toggle === filter ? (Ascending ? SetAsc(false) : SetAsc(true)) : SetFilter(toggle); // ALTD would be reset by sorting use effect
     }
 
 
@@ -83,7 +143,8 @@ const Rates = () => {
 
 
         const otherNum = (fmtType === "usdtToOther" ? parseFloat(finalFmt) * fmtRate : parseFloat(finalFmt) / fmtRate).toString();
-        const otherNumFinalFmt = !(finalFmt.length < 1 || Number(finalFmt) === 0) ? addComma(otherNum.split(".")[0]) + "." + otherNum.split(".")[1].substring(0, 3) : "0.00";
+        console.log(otherNum);
+        const otherNumFinalFmt = !(finalFmt.length < 1 || Number(finalFmt) === 0) ? addComma(otherNum.split(".")[0]) + "." + (otherNum.split(".")[1] ? otherNum.split(".")[0].substring(0, 3) : "00") : "0.00";
 
         if (fmtType === "usdtToOther") {
             usdtElem.value = addComma(finalFmt);
@@ -179,14 +240,12 @@ const Rates = () => {
                             <div className="AdWrapper">
                                 {
                                     ALTD.map((item, index) =>
-                                        <div key={index} style={{ padding: "0 1vw" }} className="Center Vertically Horizontally"
-                                            onClick={
-                                                () => {
-                                                    SetSelected(item);
-                                                }}
-                                        >
+                                        <div key={index} style={{ padding: "0 1vw" }} className="Center Vertically Horizontally">
                                             <div className="SingleAdWrap">
-                                                <div style={{ display: "grid", gridTemplateRows: "50% 50%", height: "100%" }}>
+                                                <div style={{ display: "grid", gridTemplateRows: "50% 50%", height: "100%", cursor: "pointer" }} onClick={
+                                                    () => {
+                                                        SetSelected(item);
+                                                    }}>
                                                     <div style={{ padding: "2vmin" }}>
                                                         <div>
                                                             @{item['customer']['user']}
@@ -266,18 +325,18 @@ const Rates = () => {
 
     const StartTransaction = () => {
         return (
-            <div style={{ position: "fixed", background: "linear-gradient(180deg,rgba(41, 48, 61, 0.2), rgba(243, 195, 28, 0.2),  rgba(41, 48, 61, 0.2))", width: "100%", height: "100vh", opacity: "0", zIndex: "-1", transition: "opacity 0.9s linear" }} ref={startBox} id="startBox">
+            <div style={{ position: "fixed", background: "linear-gradient(180deg,rgba(41, 48, 61, 0.2), rgba(243, 195, 28, 0.2),  rgba(41, 48, 61, 0.2))", width: "100%", height: "100vh", opacity: "0", zIndex: "-1", transition: "opacity 0.9s linear" }} id="startBox">
                 <div className="Center Vertically" style={{ height: "100%" }}>
                     <div>
 
                         <div style={{ display: "grid", justifyContent: "flex-end" }}>
                             <div style={{ margin: "2vw" }}>
-                                <FaWindowClose style={{ color: "red", background: "white", fontSize: "1.5em" }} onClick={() => {
+                                <FaWindowClose style={{ color: "red", background: "white", fontSize: "1.5em", cursor: "pointer" }} onClick={() => {
                                     SetSelected(null);
                                 }} />
                             </div>
                         </div>
-                        <div style={{ background: globalData.cusBlack, color: "white", paddingBottom:"10%" }}>
+                        <div style={{ background: globalData.cusBlack, color: "white", paddingBottom: "10%" }}>
                             {
                                 selected !== null &&
 
@@ -331,22 +390,30 @@ const Rates = () => {
                                     <hr />
                                     <div style={{ display: "grid", gap: "2vh" }}>
                                         <div>
-                                            <input type="text" className="dark" placeholder="Bank Name" />
+                                            <input type="text" className="dark" placeholder="Bank Name" id="BankName" />
                                         </div>
                                         <div>
-                                            <input type="text" className="dark" placeholder="Account/Routing Number" />
+                                            <input type="text" className="dark" placeholder="Account/Routing Number" id="AccountNumber" />
                                         </div>
                                         <div>
-                                            <input type="text" className="dark" placeholder="Receiver Name" />
+                                            <input type="text" className="dark" placeholder="Receiver Name" id="ReceiverName" />
                                         </div>
                                         <div>
-                                            <input type="text" className="dark" placeholder="Remark(Optional)" />
+                                            <input type="text" className="dark" placeholder="Remark(Optional)" id="Remark" />
                                         </div>
                                     </div>
-                                    <hr/>
+                                    <hr />
                                     <div className="Center Horizontally">
-                                        <span style={{ fontWeight: "700", fontSize: "1.2em", backgroundColor: globalData.cusGold, borderRadius: "1vw", padding: "1vmin 2vmin", cursor: "pointer", color: "black" }}>
-                                            Proceed
+                                        <span style={{ fontWeight: "700", fontSize: "1.2em", backgroundColor: globalData.cusGold, borderRadius: "1vw", padding: "1vmin 2vmin", cursor: "pointer", color: "black" }} onClick={() => {
+                                            initiateTransaction();
+                                        }}>
+                                            {
+                                                initiating ?
+                                                    <Activity />
+                                                    :
+                                                    "Proceed"
+                                            }
+
                                         </span>
                                     </div>
                                 </div>
@@ -358,49 +425,59 @@ const Rates = () => {
         )
     }
 
+    // fetch data from back end
+    useEffect(() => {
+        (async function () {
+            if (globalData.user === undefined && !globalData.fetching) {
+                DisplayMessage("Sign in to continue.", "red");
+                navigate("/login/rates");
+                return;
+            } else {
+                const resp = await fetch(globalData.BH + "/cashien/get-ads",
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": globalData.cookie
+                        }
+                    }
+                );
+                const result = await resp.json();
+                if (resp.status === 200) {
+                    console.log(result);
+                    SetAL(result['ads']);
+                    SetALTD(result['ads'].slice(0, 50));
+                } else if (resp.status === 301) {
+                    DisplayMessage(result['msg'], "red");
+                    navigate("/login/rates");
+                }
+            }
+
+        })();
+    }, [globalData.BH, globalData.fetching, globalData.cookie, navigate, globalData.user]); // ONLY RERENDER WHEN GLOBALDATA.BH OR GLOBALDATA.COOKIE CHANGES
+
+
 
     // check if an ad is slected or not, show proceed screen if so
     useEffect(() => {
-
-        if (startBox.current) {
+        const startBox = document.getElementById("startBox");
+        if (startBox !== undefined) {
             requestAnimationFrame(() => {
-                startBox.current.style.opacity = selected === null ? "0" : "1";
+                startBox.style.opacity = selected === null ? "0" : "1";
             });
             if (selected !== null) {
-                startBox.current.style.zIndex = "1";
+                startBox.style.zIndex = "1";
             } else {
                 setTimeout(() => {
-                    startBox.current.style.zIndex = "-1";
+                    startBox.style.zIndex = "-1";
                 }, 1000);
             }
         }
         console.log("update state");
-    }, [selected, startBox]);
+    }, [selected]);
 
 
 
-
-
-    // fetch data from back end
-    useEffect(() => {
-        (async function () {
-            const resp = await fetch(globalData.BH + "/cashien/get-ads",
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": globalData.cookie
-                    }
-                }
-            );
-            if (resp.status === 200) {
-                const result = await resp.json();
-                console.log(result);
-                SetAL(result['ads']);
-                SetALTD(result['ads'].slice(0, 50));
-            }
-        })();
-    }, [globalData.BH, globalData.cookie]);
 
 
     // sort data on currency filter
@@ -431,7 +508,7 @@ const Rates = () => {
             }
             return prev;
         });
-    }, [USD, CNY, EUR, Ascending, filter]);
+    }, [USD, CNY, EUR, Ascending, filter]); //ONLY RERENDER WHEN ONE OF THESE FILTER STATE CHANGES
 
 
     // update display list every time data is changed
@@ -447,7 +524,7 @@ const Rates = () => {
                 SetALTD(newList.slice(0, singleDisplayCount));
             }
         }
-    }, [AdList, CNY, USD, EUR]);
+    }, [AdList, CNY, USD, EUR]);    // ONLY RERENDER WHEN CURRENCY STATE CHANGES OR NEW AD COMES FROM SERVER
 
 
 

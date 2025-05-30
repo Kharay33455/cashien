@@ -1,3 +1,57 @@
+.WarningText {
+  text-align: center;
+  padding-top: 2vh;
+  font-size: 0.8em;
+  font-weight:700
+}
+
+.WarningWrapper {
+  background: #503718;
+  color: #A78F6B;
+  width: 90vw;
+  margin-top: 2vh;
+  border-radius: 1vw
+}
+
+.GoldButton {
+  text-align: center;
+  padding: 1vh 2vh;
+  border: 1px solid #F3C31C;
+}
+
+.GoldButton:hover {
+  background: #F3C31C;
+  color: black;
+}
+
+.DeleteBTN {
+  background: rgb(200, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.DeleteBTN:hover {
+  background: rgb(200, 0, 0, 1);
+}
+
+.MyText {
+  color: black;
+  background-color: #F3C31C;
+  width: 60%;
+  margin-left: 40%;
+  padding: 1vh 2vh;
+  border-radius: 5vw;
+  margin-bottom: 1vh
+}
+
+.OtherText {
+  color: white;
+  background-color: #29303D;
+  width: 60%;
+  padding: 1vh 2vh;
+  border-radius: 5vw;
+  margin-bottom: 1vh
+}
+
 .IdBox {
   border: 2px solid #F3C31C;
   margin: 5vmin;
@@ -119,7 +173,8 @@ input.dark:focus {
   grid-template-columns: 20% 20% 20% 20%;
   color: white;
   padding-top: 1vh;
-  gap: 6%
+  gap: 6%;
+  cursor: pointer;
 }
 
 .PagePad {
@@ -128,7 +183,7 @@ input.dark:focus {
 }
 
 .MsgBox {
-  position: absolute;
+  position: fixed;
   left: 5%;
   width: 90%;
 
@@ -244,29 +299,29 @@ input.dark:focus {
 }
 
 .Orbit {
-  border: 0.2vmin solid rgba(255, 255, 255, 0.1);
+  border: 0.1vmin solid rgba(255, 255, 255, 0.1);
   position: absolute;
   border-radius: 50%;
   transition: border 0.3s ease;
 }
 
 .Tether {
-  left: 60vw;
-  top: -20vw;
+  left: 68vw;
+  top: -12vw;
   padding: 20vw;
   animation: animateT 10s linear infinite;
 }
 
 .Usd {
-  left: 45vw;
-  top: -35vw;
+  left: 53vw;
+  top: -28vw;
   padding: 35vw;
   animation: animateT 15s linear infinite;
 }
 
 .Yuan {
-  left: 30vw;
-  top: -50vw;
+  left: 38vw;
+  top: -43vw;
   padding: 50vw;
   animation: animateT 20s linear infinite;
 }
@@ -276,8 +331,8 @@ input.dark:focus {
 }
 
 .Eur {
-  left: 15vw;
-  top: -65vw;
+  left: 26vw;
+  top: -59vw;
   padding: 65vw;
   animation: animateT 25s linear infinite;
 }
@@ -473,27 +528,37 @@ input.dark:focus {
   }
 
   .Tether {
-    left: 30vw;
-    top: -10vw;
+    left: 34vw;
+    top: -6vw;
     padding: 10vw;
   }
 
+  /*
+
+  .Tether {
+    left: 30vw; 1.13
+    top: -10vw; 0.76
+    padding: 10vw;
+  }
+
+  */
+
   .Usd {
-    left: 23vw;
-    top: -17vw;
+    left: 27vw;
+    top: -13vw;
     padding: 17vw
   }
 
   .Yuan {
-    left: 15vw;
-    top: -25vw;
+    left: 19vw;
+    top: -21vw;
     padding: 25vw
   }
 
 
   .Eur {
-    left: 7vw;
-    top: -33vw;
+    left: 9.3vw;
+    top: -29vw;
     padding: 32vw
   }
 
