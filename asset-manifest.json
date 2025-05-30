@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.1f4c66e3.css",
+    "main.js": "/static/js/main.de46224f.js",
+    "static/js/453.23ad6143.chunk.js": "/static/js/453.23ad6143.chunk.js",
+    "static/media/earth.png": "/static/media/earth.3d4e30998c79e24e139a.png",
+    "static/media/rates.jpg": "/static/media/rates.0a891efe3d7d4c117b66.jpg",
+    "index.html": "/index.html",
+    "main.1f4c66e3.css.map": "/static/css/main.1f4c66e3.css.map",
+    "main.de46224f.js.map": "/static/js/main.de46224f.js.map",
+    "453.23ad6143.chunk.js.map": "/static/js/453.23ad6143.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1f4c66e3.css",
+    "static/js/main.de46224f.js"
+  ]
+}
