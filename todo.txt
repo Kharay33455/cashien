@@ -1,0 +1,2 @@
+forgot password
+implement multiple payment options

@@ -196,7 +196,10 @@ const Transaction = () => {
                             <div className="Center Horizontally Vertically">
 
                                 <p style={{ background: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", whitespace: "normal", overflowWrap: "break-word", textAlign: "center", fontSize: "1.3em" }}>
-                                    {WalletAddress !== null && WalletAddress}
+                                    {
+                                        globalData.user.selfieApproved ? 
+                                    (WalletAddress !== null && WalletAddress) :
+                                    "Complete your verification process to deposit."}
                                 </p>
                             </div>
                             <div>

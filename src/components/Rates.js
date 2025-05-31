@@ -1,5 +1,5 @@
 import { LuEqualApproximately } from "react-icons/lu";
-import { FaWindowClose } from "react-icons/fa";
+import { FaWindowClose, FaQrcode } from "react-icons/fa";
 import { BiDollar } from "react-icons/bi";
 import { MdCurrencyYuan, MdEuro } from "react-icons/md";
 import { FaRegStar } from "react-icons/fa";
@@ -31,8 +31,46 @@ const Rates = () => {
     const [Ascending, SetAsc] = useState(true);    // sort order
 
     const [selected, SetSelected] = useState(null);
+    const [preselect, SetPreSel] = useState(null);
     const [initiating, SetInit] = useState(false);
 
+
+    const forwardQR = async (img) => {
+        const bank = document.getElementById("bank_name").value;
+        const amount = document.getElementById("inputusdt").value;
+        if (bank.length === 0) {
+            DisplayMessage("Enter a valid institution name to proceed with your payment.", "red");
+            return;
+        }
+
+        if (img === null) {
+            DisplayMessage("Invalid QR code.", "red");
+            return;
+        }
+
+        const resp = await fetch(globalData.BH + "/cashien/init-new-qr-trade/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": globalData.cookie
+            },
+            body: JSON.stringify({ "image": img, "amount": amount, "bankName": bank, "adId": selected.adId })
+        })
+        const result = await resp.json();
+        if (resp.status === 200) {
+            globalData.SetUser(prev => ({ ...prev, balance: result['cus_bal'] }));
+            DisplayMessage("Trade initiated.", "green");
+            navigate("/trade/" + result['trade_id']);
+        } else if (resp.status === 301) {
+            DisplayMessage("Your session has expired. Sign in to continue.", "red");
+            return;
+        } else {
+            DisplayMessage(result['msg'], "red");
+            return;
+        }
+
+
+    }
 
     // load next {singleDisplayCount} of list
     const loadNext = () => {
@@ -107,8 +145,12 @@ const Rates = () => {
 
             } else if (response.status === 400) {   // bad requests
                 DisplayMessage(results['msg'], "red");
+                SetSelected(null);
+                SetPreSel(null);
             } else {
                 DisplayMessage("An unexpected error has occured.", "red");  // unexpected errors
+                SetSelected(null);
+                SetPreSel(null);
             }
             SetInit(false);
 
@@ -116,7 +158,10 @@ const Rates = () => {
             // cannot connect to server
             DisplayMessage("An unexpected error has occured.", "red");
             SetInit(false);
+            SetSelected(null);
+            SetPreSel(null);
         }
+
     };
 
     // sort list by chosen category. Default is ratings
@@ -240,63 +285,162 @@ const Rates = () => {
                             <div className="AdWrapper">
                                 {
                                     ALTD.map((item, index) =>
-                                        <div key={index} style={{ padding: "0 1vw" }} className="Center Vertically Horizontally">
-                                            <div className="SingleAdWrap">
-                                                <div style={{ display: "grid", gridTemplateRows: "50% 50%", height: "100%", cursor: "pointer" }} onClick={
-                                                    () => {
-                                                        SetSelected(item);
-                                                    }}>
-                                                    <div style={{ padding: "2vmin" }}>
-                                                        <div>
-                                                            @{item['customer']['user']}
-                                                        </div>
-                                                        <div style={{ width: "100%" }}>
-                                                            <div className="StarBox">
-                                                                {
-                                                                    Array.from({ length: parseInt(item['customer']['ratings']) }).map((itm, idx) =>
+                                        <div key={index} style={{ padding: "0 1vw" }} className="Center Horizontally">
+                                            <div>
 
-                                                                        <div classNAme="StarWrapper" key={idx}>
-                                                                            <FaRegStar style={{ color: "#F3C31C" }} />
-                                                                        </div>
-                                                                    )
-                                                                }
-                                                                {
-                                                                    parseFloat(item.customer.ratings.toString().substring(0, 3)) - parseInt(item.customer.ratings.toString().substring(0, 3)) >= 0.5 && <div className="StarWrapper"> <FaRegStarHalf style={{ color: "#F3C31C" }} /> </div>
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            {
-                                                                item.customer.ratings.toString().substring(0, 3)
+                                                <div className="SingleAdWrap">
+                                                    <div style={{ cursor: "pointer" }} onClick={
+                                                        () => {
+                                                            if (preselect === item) {
+                                                                SetPreSel(null);
+                                                            } else {
+                                                                SetPreSel(item);
                                                             }
-                                                        </div>
-                                                    </div>
-                                                    <div style={{ display: "grid", gridTemplateColumns: "70% 30%" }}>
-                                                        <div>
+
+                                                        }}>
+                                                        <div style={{ padding: "2vmin" }}>
                                                             <div>
-                                                                Minumum: $ {item['min_amount']}
+                                                                @{item['customer']['user']}
+                                                            </div>
+                                                            <div style={{ width: "100%" }}>
+                                                                <div className="StarBox">
+                                                                    {
+                                                                        Array.from({ length: parseInt(item['customer']['ratings']) }).map((itm, idx) =>
+
+                                                                            <div classNAme="StarWrapper" key={idx}>
+                                                                                <FaRegStar style={{ color: "#F3C31C" }} />
+                                                                            </div>
+                                                                        )
+                                                                    }
+                                                                    {
+                                                                        parseFloat(item.customer.ratings.toString().substring(0, 3)) - parseInt(item.customer.ratings.toString().substring(0, 3)) >= 0.5 && <div className="StarWrapper"> <FaRegStarHalf style={{ color: "#F3C31C" }} /> </div>
+                                                                    }
+                                                                </div>
                                                             </div>
                                                             <div>
-                                                                Maxmimum: $ {item['max_amount']}
-                                                            </div>
-                                                            <div>
-                                                                Rates: {item['rates'].toString().substring(0, 4)}
+                                                                {
+                                                                    item.customer.ratings.toString().substring(0, 3)
+                                                                }
                                                             </div>
                                                         </div>
 
-                                                        <div style={{ fontSize: "2em", color: globalData.cusGold }}>
-                                                            {
-                                                                item['currency'] === "1" && <BiDollar />
-                                                            }
-                                                            {
-                                                                item['currency'] === "2" && <MdCurrencyYuan />
-                                                            }
-                                                            {
-                                                                item['currency'] === "3" && <MdEuro />
-                                                            }
+
+                                                        <div style={{ display: "grid", gridTemplateColumns: "70% 30%" }}>
+                                                            <div>
+                                                                <div>
+                                                                    Minumum: $ {item['min_amount']}
+                                                                </div>
+                                                                <div>
+                                                                    Maxmimum: $ {item['max_amount']}
+                                                                </div>
+                                                                <div>
+                                                                    Rates: {item['rates'].toString().substring(0, 4)}
+                                                                </div>
+                                                            </div>
+
+                                                            <div style={{ fontSize: "2em", color: globalData.cusGold }}>
+                                                                {
+                                                                    item['currency'] === "1" && <BiDollar />
+                                                                }
+                                                                {
+                                                                    item['currency'] === "2" && <MdCurrencyYuan />
+                                                                }
+                                                                {
+                                                                    item['currency'] === "3" && <MdEuro />
+                                                                }
+                                                            </div>
                                                         </div>
+
+
+
+                                                        <div className="Center" style={{ maxHeight: item === preselect ? "fit-content" : "0vh", opacity: item === preselect ? "1" : "0", zIndex: item === preselect ? "1" : "-1", position: "relative" }}>
+                                                            <div>
+                                                                <div className="WarningWrapper" style={{ width: "auto", padding: "1vh 1vh" }}>
+                                                                    <span className="WarningText">
+                                                                        {item.terms}
+                                                                    </span>
+                                                                </div>
+                                                                <br />
+                                                                <div style={{ margin: "0 1vh" }}>
+                                                                    <div className="SideBySideFlex">
+                                                                        {
+                                                                            item.bank &&
+                                                                            <div className="PMRates">
+                                                                                Bank Transfer
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.alipay &&
+                                                                            <div className="PMRates">
+                                                                                Alipay
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.paypal &&
+                                                                            <div className="PMRates">
+                                                                                PayPal
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.sepa &&
+                                                                            <div className="PMRates">
+                                                                                SEPA Transfer
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.revolut &&
+                                                                            <div className="PMRates">
+                                                                                Revolut
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.wise &&
+                                                                            <div className="PMRates">
+                                                                                Transfer Wise
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.payoneer &&
+                                                                            <div className="PMRates">
+                                                                                Payoneer
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.swift &&
+                                                                            <div className="PMRates">
+                                                                                SWIFT Wire Transfer
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.wechatpay &&
+                                                                            <div className="PMRates">
+                                                                                WeChat Pay
+                                                                            </div>
+                                                                        }
+                                                                        {
+                                                                            item.remitly &&
+                                                                            <div className="PMRates">
+                                                                                Remitly
+                                                                            </div>
+                                                                        }
+
+                                                                    </div>
+                                                                </div>
+                                                                <br />
+                                                                <div>
+
+                                                                    <p className="GoldButton" onClick={() => {
+                                                                        SetSelected(item);
+                                                                    }}>
+                                                                        Initiate
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                     </div>
                                                 </div>
+
                                             </div>
                                         </div>
                                     )
@@ -324,6 +468,9 @@ const Rates = () => {
 
 
     const StartTransaction = () => {
+
+        const [formFormat, SetFF] = useState("text");
+        const [image, SetImage] = useState(null);
         return (
             <div style={{ position: "fixed", background: "linear-gradient(180deg,rgba(41, 48, 61, 0.2), rgba(243, 195, 28, 0.2),  rgba(41, 48, 61, 0.2))", width: "100%", height: "100vh", opacity: "0", zIndex: "-1", transition: "opacity 0.9s linear" }} id="startBox">
                 <div className="Center Vertically" style={{ height: "100%" }}>
@@ -333,94 +480,178 @@ const Rates = () => {
                             <div style={{ margin: "2vw" }}>
                                 <FaWindowClose style={{ color: "red", background: "white", fontSize: "1.5em", cursor: "pointer" }} onClick={() => {
                                     SetSelected(null);
+                                    SetPreSel(null);
                                 }} />
                             </div>
                         </div>
-                        <div style={{ background: globalData.cusBlack, color: "white", paddingBottom: "10%" }}>
-                            {
-                                selected !== null &&
+                        <div style={{ height: "80vh", overflowY: "scroll" }}>
+                            <div style={{ background: globalData.cusBlack, color: "white", paddingBottom: "10%" }}>
+                                {
+                                    selected !== null &&
 
-                                <div style={{ padding: "2vw" }}>
-                                    <div>
-                                        <span style={{ fontSize: "2em" }}>
-                                            @{selected.customer.user}<br />
-                                        </span>
-                                        <span style={{ fontSize: "1.5em" }}>
-                                            $&nbsp;{selected.min_amount} - $&nbsp;{selected.max_amount} at {selected.rates.toString().substring(0, 4)}/USDT
-                                        </span>
-                                    </div>
-                                    <hr />
-                                    <div className="InputBox">
-                                        <div style={{ display: "flex" }} className="Center Vertically Horizontally">
-                                            <div>
-                                                <input type="text" className="dark" id="inputusdt" onInput={() => {
-                                                    formatInput("usdtToOther", selected.rates);
-                                                }} />
-                                            </div>
-                                            <div className="Center Vertically" style={{ fontSize: "1.5em" }}>
-                                                &nbsp;USDT
-                                            </div>
-                                        </div>
-                                        <div className="Center Vertically Horizontally">
-                                            <span>
-                                                &nbsp;
-                                                <LuEqualApproximately style={{ fontSize: "1.5em" }} />
-                                                &nbsp;
+                                    <div style={{ padding: "2vw" }}>
+                                        <div>
+                                            <span style={{ fontSize: "2em" }}>
+                                                @{selected.customer.user}<br />
+                                            </span>
+                                            <span style={{ fontSize: "1.5em" }}>
+                                                $&nbsp;{selected.min_amount} - $&nbsp;{selected.max_amount} at {selected.rates.toString().substring(0, 4)}/USDT
                                             </span>
                                         </div>
-                                        <div style={{ display: "flex", gap: "1vw" }} className="Center Vertically Horizontally">
-                                            <div className="Center Vertically" style={{ fontSize: "1.5em" }}>
-                                                {
-                                                    selected.currency === "1" && <BiDollar />
-                                                }
-                                                {
-                                                    selected.currency === "2" && <MdCurrencyYuan />
-                                                }
-                                                {
-                                                    selected.currency === "3" && <MdEuro />
-                                                }
+                                        <hr />
+                                        <div className="InputBox">
+                                            <div style={{ display: "flex" }} className="Center Vertically Horizontally">
+                                                <div>
+                                                    <input type="text" className="dark" id="inputusdt" onInput={() => {
+                                                        formatInput("usdtToOther", selected.rates);
+                                                    }} />
+                                                </div>
+                                                <div className="Center Vertically" style={{ fontSize: "1.5em" }}>
+                                                    &nbsp;USDT
+                                                </div>
                                             </div>
-                                            <div>
-                                                <input type="text" className="dark" id="inputother" onInput={() => {
-                                                    formatInput("otherToUsdt", selected.rates);
-                                                }} />
+                                            <div className="Center Vertically Horizontally">
+                                                <span>
+                                                    &nbsp;
+                                                    <LuEqualApproximately style={{ fontSize: "1.5em" }} />
+                                                    &nbsp;
+                                                </span>
+                                            </div>
+                                            <div style={{ display: "flex", gap: "1vw" }} className="Center Vertically Horizontally">
+                                                <div className="Center Vertically" style={{ fontSize: "1.5em" }}>
+                                                    {
+                                                        selected.currency === "1" && <BiDollar />
+                                                    }
+                                                    {
+                                                        selected.currency === "2" && <MdCurrencyYuan />
+                                                    }
+                                                    {
+                                                        selected.currency === "3" && <MdEuro />
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <input type="text" className="dark" id="inputother" onInput={() => {
+                                                        formatInput("otherToUsdt", selected.rates);
+                                                    }} />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <hr />
-                                    <div style={{ display: "grid", gap: "2vh" }}>
-                                        <div>
-                                            <input type="text" className="dark" placeholder="Bank Name" id="BankName" />
-                                        </div>
-                                        <div>
-                                            <input type="text" className="dark" placeholder="Account/Routing Number" id="AccountNumber" />
-                                        </div>
-                                        <div>
-                                            <input type="text" className="dark" placeholder="Receiver Name" id="ReceiverName" />
-                                        </div>
-                                        <div>
-                                            <input type="text" className="dark" placeholder="Remark(Optional)" id="Remark" />
-                                        </div>
-                                    </div>
-                                    <hr />
-                                    <div className="Center Horizontally">
-                                        <span style={{ fontWeight: "700", fontSize: "1.2em", backgroundColor: globalData.cusGold, borderRadius: "1vw", padding: "1vmin 2vmin", cursor: "pointer", color: "black" }} onClick={() => {
-                                            initiateTransaction();
-                                        }}>
-                                            {
-                                                initiating ?
-                                                    <Activity />
-                                                    :
-                                                    "Proceed"
-                                            }
+                                        <hr />
+                                        <ul className="nav nav-pills nav-fill">
+                                            <li className="nav-item">
+                                                <span className={"nav-link " + (formFormat === "text" ? "active" : "")} aria-current="page" onClick={() => {
+                                                    SetFF("text");
+                                                }} style={{ cursor: "pointer" }}>Enter transaction details</span>
+                                            </li>
+                                            <li className="nav-item">
+                                                <span className={"nav-link " + (formFormat === "scan" ? "active" : "")} onClick={() => {
+                                                    SetFF("scan");
+                                                }} style={{ cursor: "pointer" }}>Use QR scan</span>
+                                            </li>
 
-                                        </span>
+                                        </ul>
+                                        <hr />
+                                        {
+                                            formFormat === "text"
+                                            &&
+                                            <div style={{ display: "grid", gap: "2vh" }}>
+                                                <div>
+                                                    <input type="text" className="dark" placeholder="Bank Name" id="BankName" />
+                                                </div>
+                                                <div>
+                                                    <input type="text" className="dark" placeholder="Account/Routing Number" id="AccountNumber" />
+                                                </div>
+                                                <div>
+                                                    <input type="text" className="dark" placeholder="Receiver Name" id="ReceiverName" />
+                                                </div>
+                                                <div>
+                                                    <input type="text" className="dark" placeholder="Remark(Optional)" id="Remark" />
+                                                </div>
+                                            </div>
+                                        }
+                                        {
+                                            formFormat === "scan"
+                                            &&
+                                            <div>
+                                                <QRCode params={{ "image": image, "SetImage": SetImage }} />
+                                            </div>
+                                        }
+                                        <hr />
+                                        <div className="Center Horizontally">
+                                            <span style={{ fontWeight: "700", fontSize: "1.2em", backgroundColor: globalData.cusGold, borderRadius: "1vw", padding: "1vmin 2vmin", cursor: "pointer", color: "black" }} onClick={() => {
+                                                if (formFormat === "text") {
+                                                    initiateTransaction();
+                                                }
+                                                else if (formFormat === "scan") {
+                                                    forwardQR(image);
+                                                }
+
+
+
+                                            }}>
+                                                {
+                                                    initiating ?
+                                                        <Activity />
+                                                        :
+                                                        "Proceed"
+                                                }
+
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            }
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        )
+    }
+
+    const QRCode = ({ params }) => {
+        const image = params.image
+        const SetImage = params.SetImage
+        const formatImg = () => {
+            const img = document.getElementById("inputqrcode").files[0];
+            const newReader = new FileReader();
+            newReader.onload = (e) => {
+                SetImage(e.target.result);
+            }
+            newReader.readAsDataURL(img);
+        }
+
+
+        return (
+            <div>
+                <div>
+                    <div>
+                        <input className="dark" placeholder="Alipay, SEPA, Bank Name..." id="bank_name" />
+                    </div>
+                </div>
+                <br />
+                <div className="Center Horizontally">
+                    <div style={{ width: "50vw", height: "40vw", border: "1px, solid " + globalData.cusGold }} className="Center Horizontally Vertically">
+                        <label for="inputqrcode" style={{ cursor: "pointer" }}>
+                            {
+                                image === null ?
+                                    <div>
+                                        <div className="Center Horizontally">
+                                            <FaQrcode />
+                                        </div>
+                                        <div>
+                                            Upload QR code
+                                        </div>
+                                        <input type="file" accept="image/*" hidden id="inputqrcode" onChange={formatImg} />
+                                    </div>
+                                    :
+                                    <div>
+                                        <img src={image} alt="QR Code" style={{ width: "30vw", height: "30vw" }} />
+                                    </div>
+                            }
+                        </label>
+                    </div>
+                </div>
+
             </div>
         )
     }
@@ -511,6 +742,7 @@ const Rates = () => {
     }, [USD, CNY, EUR, Ascending, filter]); //ONLY RERENDER WHEN ONE OF THESE FILTER STATE CHANGES
 
 
+
     // update display list every time data is changed
     useEffect(() => {
         console.log("state");
@@ -530,7 +762,7 @@ const Rates = () => {
 
     return (
         <div className="PagePad">
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", top: "-1vh" }}>
                 <StartTransaction />
             </div>
             <Filters />

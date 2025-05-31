@@ -14,7 +14,6 @@ const Verification = () => {
     const [selfie, SetSelfie] = useState(null);
     const [SendingDoc, SetSD] = useState(false);
 
-    const emailJsScript = document.createElement("script");
     const params = useParams();
 
 
@@ -54,13 +53,19 @@ const Verification = () => {
         )
         const result = await resp.json();
         if (resp.status === 200) {
-
+            console.log(result);
             // send email
             const emailJsParams = {
                 "email": globalData.user.email,
-                "company_name": "Cashien",
+                "subject": "Verify your email address",
+                "header": "Hello " + globalData.user.user + ",",
+                "subheader": "Email verification for your Cashien account",
+                "message": "Welcome to Cashien. To complete your verification process, click on this",
+                "contentOne": "Do not share this link with anyone. If you didn't make this request, you can safely ignore this email.",
+                "contentTwo": "Cashien will never contact you about this email or ask for any login codes or links. Beware of phishing scams.",
+                "contentThree": "Thanks for joining Cashien!",
                 "verification_link": window.location.protocol + "//" + window.location.host + "/#/verification/" + result['msg'],
-                "username": globalData.user.user
+
             }
             if (window.emailjs) {
                 window.emailjs.send("service_zy556fn", "template_khg4oer", emailJsParams).then(
@@ -438,6 +443,7 @@ const Verification = () => {
 
 
     useEffect(() => {
+        const emailJsScript = document.createElement("script");
         emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
         emailJsScript.onload = () => {
             (function () {
@@ -454,7 +460,11 @@ const Verification = () => {
         }
         document.body.appendChild(emailJsScript);
 
-    }, [emailJsScript]);
+        return () => {
+            document.body.removeChild(emailJsScript);
+        }
+
+    }, []);
 
 
     useEffect(() => {

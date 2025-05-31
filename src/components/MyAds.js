@@ -38,58 +38,6 @@ const MyAds = () => {
 
     }
 
-    const CreateAd = async () => {
-
-        const currency = document.getElementById("currency").value
-        const min = document.getElementById("min").value
-        const max = document.getElementById("max").value
-        const rates = document.getElementById("rates").value
-        // console.log(currency, Ads);
-
-        // check existing
-        const existing = Ads.filter(item => item.currency === currency && item.is_active);
-        if (existing.length > 0) {
-            DisplayMessage("Archive your active " + (currency === "1" ? "USD" : "") + (currency === "2" ? "CNY" : "") + (currency === "3" ? "EUR" : "") + " to continue.", "red");
-            return;
-        }
-        else {
-            if (!CheckField()) {
-                return;
-            };
-            if (!document.getElementById("agree").checked) {
-                DisplayMessage("You must agree with our terms to continue", "red");
-                return;
-            }
-            try {
-
-                const resp = await fetch(globalData.BH + "/cashien/create-new-ad/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": globalData.cookie
-                    },
-                    body: JSON.stringify({ "min": formatNumber(min), "max": formatNumber(max), "rates": rates, "currency": currency })
-                });
-                const result = await resp.json();
-                if (resp.status === 200) {
-                    SetAds(result['data']);
-                    DisplayMessage("Ad created", globalData.cusGold);
-                    navigate("/my-ads");
-                    return;
-                } else {
-                    DisplayMessage(result['msg'], "red");
-                    return;
-                }
-
-            } catch {
-                DisplayMessage("An unexpected error has occured", "red");
-                return;
-            }
-
-        }
-
-    }
-
     const DeleteAd = async (adId, isActive) => {
         SetLoaderHeight("0.5vh")
         SetLoader("90%");
@@ -245,6 +193,65 @@ const MyAds = () => {
 
 
     const CreateNewAd = () => {
+        const [paymentMethods, SetPM] = useState({ "bank": true, "alipay": false, "wechatpay": false, "paypal": false, "wise": false, "sepa": false, "revolut": false, "swift": false, "payoneer": false, "remitly": false })
+
+        const CreateAd = async () => {
+
+            const currency = document.getElementById("currency").value;
+            const min = document.getElementById("min").value;
+            const max = document.getElementById("max").value;
+            const rates = document.getElementById("rates").value;
+            const terms = document.getElementById("terms").value;
+            // console.log(currency, Ads);
+
+            // check existing
+            const existing = Ads.filter(item => item.currency === currency && item.is_active);
+            if (existing.length > 0) {
+                DisplayMessage("Archive your active " + (currency === "1" ? "USD" : "") + (currency === "2" ? "CNY" : "") + (currency === "3" ? "EUR" : "") + " to continue.", "red");
+                return;
+            }
+            else {
+                if (!CheckField()) {
+                    return;
+                };
+                if(terms.trim()===""){
+                    DisplayMessage("You need to specify valid terms for your buyers.", "red");
+                    return;
+                }
+                if (!document.getElementById("agree").checked) {
+                    DisplayMessage("You must agree with our terms to continue", "red");
+                    return;
+                }
+                try {
+
+                    const resp = await fetch(globalData.BH + "/cashien/create-new-ad/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": globalData.cookie
+                        },
+                        body: JSON.stringify({ "min": formatNumber(min), "max": formatNumber(max), "rates": rates, "currency": currency, "paymentMethods": paymentMethods,"terms":terms })
+                    });
+                    const result = await resp.json();
+                    if (resp.status === 200) {
+                        SetAds(result['data']);
+                        DisplayMessage("Ad created", globalData.cusGold);
+                        navigate("/my-ads");
+                        return;
+                    } else {
+                        DisplayMessage(result['msg'], "red");
+                        return;
+                    }
+
+                } catch {
+                    DisplayMessage("An unexpected error has occured", "red");
+                    return;
+                }
+
+            }
+
+        }
+
         useEffect(() => {
             SetIsActive("new");
         }, []);
@@ -302,6 +309,148 @@ const MyAds = () => {
                                 <option value="3">EUR</option>
 
                             </select>
+                        </div>
+                        <div>
+                            <div>
+                                <span>
+                                    Payment methods:
+                                </span>
+                            </div>
+                            <div className="SideBySideFlex">
+                                <div className={(paymentMethods.bank ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.bank) {
+                                            SetPM(prev => ({ ...prev, bank: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, bank: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Bank Transfers
+                                </div>
+                                <div className={(paymentMethods.alipay ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.alipay) {
+                                            SetPM(prev => ({ ...prev, alipay: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, alipay: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Alipay
+                                </div>
+                                <div className={(paymentMethods.wechatpay ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.wechatpay) {
+                                            SetPM(prev => ({ ...prev, wechatpay: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, wechatpay: true }));
+                                        }
+
+                                    }}
+                                >
+                                    WeChat Pay
+                                </div>
+                                <div className={(paymentMethods.paypal ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.paypal) {
+                                            SetPM(prev => ({ ...prev, paypal: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, paypal: true }));
+                                        }
+
+                                    }}
+                                >
+                                    PayPal
+                                </div>
+                                <div className={(paymentMethods.wise ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.wise) {
+                                            SetPM(prev => ({ ...prev, wise: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, wise: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Transfer Wise
+                                </div>
+                                <div className={(paymentMethods.sepa ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.sepa) {
+                                            SetPM(prev => ({ ...prev, sepa: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, sepa: true }));
+                                        }
+
+                                    }}
+                                >
+                                    SEPA
+                                </div>
+                                <div className={(paymentMethods.revolut ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.revolut) {
+                                            SetPM(prev => ({ ...prev, revolut: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, revolut: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Revolut
+                                </div>
+                                <div className={(paymentMethods.swift ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.swift) {
+                                            SetPM(prev => ({ ...prev, swift: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, swift: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Swift Wire Transfer
+                                </div>
+                                <div className={(paymentMethods.payoneer ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.payoneer) {
+                                            SetPM(prev => ({ ...prev, payoneer: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, payoneer: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Payoneer
+                                </div>
+                                <div className={(paymentMethods.remitly ? "ActivePM" : "InactivePM") + " PM"}
+                                    onClick={() => {
+                                        if (paymentMethods.remitly) {
+                                            SetPM(prev => ({ ...prev, remitly: false }));
+                                        } else {
+                                            SetPM(prev => ({ ...prev, remitly: true }));
+                                        }
+
+                                    }}
+                                >
+                                    Remitly
+                                </div>
+                            </div>
+                            <div>
+                                <div>
+                                    <span>
+                                        Your terms:
+                                    </span>
+                                </div>
+                                <div>
+                                    <textarea className="dark" id="terms">
+
+                                    </textarea>
+                                </div>
+
+                            </div>
                         </div>
                         <br />
                         <div style={{ display: "flex", gap: "2vw", padding: "0 2vw" }}>

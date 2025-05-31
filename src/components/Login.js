@@ -96,6 +96,12 @@ const Login = () => {
                                 Register.
                             </Link>
                         </small>
+                        <br />
+                        <small>
+                            <Link to="/forgot-password">
+                                Forgot password?
+                            </Link>
+                        </small>
                     </div>
                 </div>
             </div>

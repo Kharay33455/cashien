@@ -13,11 +13,11 @@ const Profile = () => {
     const [isVisible, SetIV] = useState(false);
     const navigate = useNavigate();
     const [Trades, SetTrades] = useState(null);
+    console.log(globalData, document.cookie)
 
     useEffect(() => {
         (async function () {
-
-            if (globalData.user === undefined && !globalData.fetching) {
+            if (globalData.user === undefined && !globalData.fetching && globalData.cookie) {
                 DisplayMessage("Sign in to continue.", "red");
                 navigate("/login/profile");
 
@@ -37,6 +37,9 @@ const Profile = () => {
                 }
             }
         })();
+        return ()=>{
+
+        }
     }, [globalData.cookie, globalData.BH, globalData.user, navigate, globalData.fetching]);
 
     

@@ -10,9 +10,12 @@ import Trade from "./Trade";
 import MyAds from "./MyAds";
 import Faq from "./Faq";
 import Transaction from "./Transaction";
-import { HashRouter, Routes, Route, Link} from "react-router";
+import ForgotPass from "./ForgotPass";
+import { HashRouter, Routes, Route, Link } from "react-router";
 import { useState, createContext, useRef, useEffect } from "react";
 import env from "react-dotenv";
+import NewPassword from './NewPassword';
+import Dispute from './Dispute';
 
 
 export const GlobalContext = createContext(null);
@@ -28,13 +31,13 @@ function App() {
   const BH = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_BH_DEV : env.REACT_APP_BH_PROD;
   const WS = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_WS_DEV : env.REACT_APP_WS_PROD;
   const appEnv = env.REACT_APP_ENV;
-  
+
 
 
   const [cookie, SetCookie] = useState(document.cookie.split("token=")[document.cookie.split("token=").length - 1]);
 
   const SignOut = async () => {
-    if(fetching){
+    if (fetching) {
       return;
     }
     SetF(true);
@@ -76,17 +79,17 @@ function App() {
   return (
     <div>
 
-      <GlobalContext.Provider value={{ 'user': user, 'SetUser': SetUser, "BH": BH, "WS": WS, 'cusGold': cusGold, "cookie": cookie, "SetCookie": SetCookie, "cusBlack": cusBlack, 'cusGray': cusGray, "fetching": fetching, "SetF" :SetF, "appEnv" : appEnv }}>
+      <GlobalContext.Provider value={{ 'user': user, 'SetUser': SetUser, "BH": BH, "WS": WS, 'cusGold': cusGold, "cookie": cookie, "SetCookie": SetCookie, "cusBlack": cusBlack, 'cusGray': cusGray, "fetching": fetching, "SetF": SetF, "appEnv": appEnv }}>
         <HashRouter>
           <nav className="navbar navbar-dark bg-dark fixed-top">
             <div className="container-fluid">
-              <Link className="navbar-brand" to="/">Logo</Link>
+              <Link className="navbar-brand" to="/" style={{fontWeight:"900"}}>CA$HI&euro;N</Link>
               <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
               </button>
               <div className="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
                 <div className="offcanvas-header">
-                  <h5 className="offcanvas-title" id="offcanvasDarkNavbarLabel">Logo</h5>
+                  <h5 className="offcanvas-title" id="offcanvasDarkNavbarLabel">CA$HI&euro;N</h5>
                   <button ref={closeBtn} type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div className="offcanvas-body">
@@ -178,7 +181,10 @@ function App() {
             <Route path="/trade/:tradeId" element={<Trade />} />
             <Route path="/my-ads/*" element={<MyAds />} />
             <Route path="/faq" element={<Faq />} />
-            <Route path ="/transactions/*" element = {<Transaction/>}/>
+            <Route path="/transactions/*" element={<Transaction />} />
+            <Route path="/forgot-password" element={<ForgotPass />} />
+            <Route path="/reset-password/:otp" element={<NewPassword/>}/>
+            <Route path="/dispute/:tradeId" element={<Dispute/>}/>
           </Routes>
         </HashRouter>
 

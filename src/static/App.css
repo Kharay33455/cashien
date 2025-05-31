@@ -1,8 +1,36 @@
+.PMRates {
+  font-size: 0.8em;
+  border-left: 0.5vmin solid white;
+  padding-left: 1vw
+}
+
+.SideBySideFlex {
+  display: flex;
+  gap: 1vw;
+  flex-wrap: wrap;
+}
+
+.ActivePM {
+  background: #F3C31C;
+  color: #29303D;
+}
+
+.InactivePM {
+  background: #29303D;
+  color: gray;
+}
+
+.PM {
+  border: 1px groove white;
+  padding: 0vh 1vh;
+  border-radius: 5vw;
+}
+
 .WarningText {
   text-align: center;
   padding-top: 2vh;
   font-size: 0.8em;
-  font-weight:700
+  font-weight: 700
 }
 
 .WarningWrapper {
@@ -99,7 +127,8 @@
 
 }
 
-input {
+input,
+textarea {
   padding: 0.5rem 1rem;
   font-size: 1rem;
   border: 1px solid #ccc;
@@ -121,6 +150,13 @@ input:focus {
   /* Subtle glow */
 }
 
+textarea:focus {
+  border-color: #007BFF;
+  /* Blue focus border */
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  /* Subtle glow */
+}
+
 input::placeholder {
   color: #aaa;
   opacity: 1;
@@ -134,6 +170,17 @@ input.dark {
 }
 
 input.dark:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 0 3px rgba(102, 175, 233, 0.5);
+}
+
+textarea.dark {
+  background-color: #1e1e1e;
+  color: #eee;
+  border: 1px solid #444;
+}
+
+textarea.dark:focus {
   border-color: #66afe9;
   box-shadow: 0 0 0 3px rgba(102, 175, 233, 0.5);
 }
@@ -421,7 +468,6 @@ input.dark:focus {
 
   .SingleAdWrap {
     width: 95vw;
-    height: 47vw;
   }
 
   .StarWrapper {
@@ -447,6 +493,11 @@ input.dark:focus {
 
   .SelfieHelpText {
     display: none;
+  }
+
+  .ExpandedImg {
+    height: 90vw;
+    width: 90vw;
   }
 }
 
@@ -483,7 +534,6 @@ input.dark:focus {
 
   .SingleAdWrap {
     width: 45vw;
-    height: 22vw;
   }
 
   .StarWrapper {
@@ -510,6 +560,11 @@ input.dark:focus {
 
   .SelfieHelpText {
     display: none;
+  }
+
+  .ExpandedImg {
+    height: 90vw;
+    width: 90vw;
   }
 }
 
@@ -589,7 +644,6 @@ input.dark:focus {
 
   .SingleAdWrap {
     width: 30vw;
-    height: 15vw
   }
 
   .StarWrapper {
@@ -615,5 +669,10 @@ input.dark:focus {
 
   .SelfieMain {
     display: none;
+  }
+
+  .ExpandedImg {
+    height: 80vh;
+    width: 80vh;
   }
 }
