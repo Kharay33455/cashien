@@ -72,7 +72,7 @@ window.env = {
   "REACT_APP_COMPNAME": "Cashien",
   "REACT_APP_ENV": "PROD",
   "REACT_APP_WS_DEV": "ws://192.168.0.3:8080",
-  "REACT_APP_WS_PROD": "wss://outbound-wogo.onrender.com/",
+  "REACT_APP_WS_PROD": "wss://outbound-wogo.onrender.com",
   "SESSIONNAME": "Console",
   "SystemDrive": "C:",
   "SystemRoot": "C:\\Windows",
