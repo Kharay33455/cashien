@@ -21,6 +21,7 @@ const Trade = () => {
     const [Sending, SetSending] = useState(false);
     const [ImgToExpand, SetITE] = useState(null);
     const navigate = useNavigate();
+    const [emailLimit, SetEL] = useState(null);
 
     const SubmitRating = async () => {
         const resp = await fetch(globalData.BH + "/cashien/rate-transaction/", {
@@ -63,7 +64,7 @@ const Trade = () => {
         SetSending(true);
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         SetRC(code);
-        
+
         const mailParams = {
             "subject": "Release order for " + addComma(TradeData.amount.toString().split(".")[0]) + " USDT on your Cashien account.",
             "email": globalData.user.email,
@@ -91,8 +92,9 @@ const Trade = () => {
                                 DisplayMessage("Verification code sent to " + globalData.user.email + ".", "green");
                                 SetRT(true);
                                 document.body.removeChild(emailJsScript);
-                                SetSending(false);
+                                SetEL(120);
                             } else {
+                                DisplayMessage("Failed to send mail", "red");
                                 document.body.removeChild(emailJsScript);
                                 SetSending(false);
                             }
@@ -156,89 +158,11 @@ const Trade = () => {
             });
             const result = await resp.json();
             if (resp.status === 200) {
-                
+
                 SetTD(result['trade_data']);
                 SetTL(result['trade_data']['time_left']);
                 SetTemplates(result['templates']);
                 SetMessages(result['messages']);
-                if (result['trade_data']['time_left'] > 0 && globalData.user !== undefined) {
-                    const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/" + globalData.cookie + "/");
-                    ws.onopen = () => {
-                        // edit this
-                        if (globalData.appEnv === "PROD") {
-                            const mailParams = {
-                                "subject": "[Cashien] There is a new order waiting for you to process",
-                                "email": result['trade_data']['other_email'],
-                                "contentOne": "There is an order of " + addComma(result['trade_data']['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
-                                "passcode": tradeId,
-                                "contentTwo": "You have " + (result['trade_data']['time_left'] * 1.00 / 60).toString().split(".")[0] + " minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
-                                "contentThree": "Thank you for choosing Cashien!"
-                            }
-
-                            const emailJsScript = document.createElement("script");
-                            emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-                            emailJsScript.onload = () => {
-                                (function () {
-                                    if (window.emailjs) {
-                                        window.emailjs.init({
-                                            publicKey: "0KyRWIATeIiNruEXL",
-                                            limitRate: {
-                                                id: "service_zy556fn",
-                                                throttle: 100,
-                                            }
-                                        });
-                                        window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
-                                            (response) => {
-                                                if (response.status === 200) {
-                                                    document.body.removeChild(emailJsScript);
-                                                    return;
-                                                } else {
-                                                    document.body.removeChild(emailJsScript);
-                                                    return;
-                                                }
-                                            }
-                                        );
-
-
-                                    }
-                                })();
-                            }
-                            document.body.appendChild(emailJsScript);
-                        }
-
-                    }
-                    ws.onclose = () => {
-                        SetSoc(null);
-                    }
-                    ws.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        if (data['type'] === "new_text") {
-                            if (data.message.sender === globalData.user.user) {
-                                let edited = false
-                                SetMessages(prev => (
-                                    prev.map(item => {
-                                        if (!item.is_sent && item.message_text === data.message.message_text && !edited) {
-                                            edited = true
-                                            return { ...item, is_sent: true };
-                                        }
-                                        return item;
-                                    })
-                                ));
-                            } else {
-                                SetMessages(prev => ([...prev, data.message]));
-                            }
-
-                        } else if (data['type'] === "receipt") {
-                            SetTD(prev => ({ ...prev, receipt: data['image_url'] }));
-                        } else if (data['type'] === "release") {
-                            SetTD(prev => ({ ...prev, successful: true, timeToProcess: data["context"]['time_to_process'] }));
-                            SetTL(0);
-                            DisplayMessage("Trade Successful", "green");
-                        }
-
-                    }
-                    SetSoc(ws);
-                }
                 return;
             } else if (resp.status === 400) {
                 DisplayMessage(result['msg'], "red");
@@ -248,11 +172,96 @@ const Trade = () => {
             }
         })();
 
-        return () => {
-            SetSoc(null);
-        }
-    }, [globalData.cookie, globalData.BH, tradeId, globalData.WS, globalData.appEnv, globalData.user]);
+    }, [globalData.cookie, globalData.BH, tradeId]);
 
+    const createSocket = useCallback(() => {
+        if (TradeData !== undefined) {
+            if ((TradeData.time_left > 0 && globalData.user !== undefined && TradeData.successful === null) || (globalData.user !== undefined && TradeData.receipt !== null && TradeData.successful === null)) {
+                const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/" + globalData.cookie + "/");
+                ws.onopen = () => {
+                    // edit this
+                    if (globalData.appEnv === "PROD") {
+                        const mailParams = {
+                            "subject": "[Cashien] There is a new order waiting for you to process",
+                            "email": TradeData['other_email'],
+                            "contentOne": "There is an order of " + addComma(TradeData['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
+                            "passcode": tradeId,
+                            "contentTwo": "You have " + (TradeData['time_left'] * 1.00 / 60).toString().split(".")[0] + " minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
+                            "contentThree": "Thank you for choosing Cashien!"
+                        }
+
+                        const emailJsScript = document.createElement("script");
+                        emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+                        emailJsScript.onload = () => {
+                            (function () {
+                                if (window.emailjs) {
+                                    window.emailjs.init({
+                                        publicKey: "0KyRWIATeIiNruEXL",
+                                        limitRate: {
+                                            id: "service_zy556fn",
+                                            throttle: 100,
+                                        }
+                                    });
+                                    window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
+                                        (response) => {
+                                            if (response.status === 200) {
+                                                document.body.removeChild(emailJsScript);
+                                                return;
+                                            } else {
+                                                document.body.removeChild(emailJsScript);
+                                                return;
+                                            }
+                                        }
+                                    );
+
+
+                                }
+                            })();
+                        }
+                        document.body.appendChild(emailJsScript);
+                    }
+
+                }
+                ws.onclose = () => {
+                    SetSoc(null);
+                }
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data['type'] === "new_text") {
+                        if (data.message.sender === globalData.user.user) {
+                            let edited = false
+                            SetMessages(prev => (
+                                prev.map(item => {
+                                    if (!item.is_sent && item.message_text === data.message.message_text && !edited) {
+                                        edited = true
+                                        return { ...item, is_sent: true };
+                                    }
+                                    return item;
+                                })
+                            ));
+                        } else {
+                            SetMessages(prev => ([...prev, data.message]));
+                        }
+
+                    } else if (data['type'] === "receipt") {
+                        SetTD(prev => ({ ...prev, receipt: data['image_url'] }));
+                    } else if (data['type'] === "release") {
+                        SetTD(prev => ({ ...prev, successful: true, timeToProcess: data["context"]['time_to_process'] }));
+                        SetTL(0);
+                        DisplayMessage("Trade Successful", "green");
+                    }
+
+                }
+                SetSoc(ws);
+            }
+        }
+    }, [TradeData, tradeId, globalData.WS, globalData.appEnv, globalData.cookie, globalData.user])
+
+    useEffect(() => {
+        if (socket === null) {
+            createSocket();
+        }
+    }, [socket, createSocket])
 
     useEffect(() => {
         if (RT) {
@@ -310,8 +319,27 @@ const Trade = () => {
         }
     }, [Receipt, socket])
 
+    const updateEmailLimiter = useCallback(() => {
+        SetEL(prev => {
+            if (prev !== null && prev > 0) {
+                return prev - 1;
+            } else if (prev !== null && prev === 0) {
+                SetSending(false);
+                return null;
+            } else {
+                return prev
+            }
+        })
+    }, []);
 
-
+    useEffect(() => {
+        const interval = setInterval(() => {
+            updateEmailLimiter();
+        }, 1000);
+        return () => {
+            clearInterval(interval);
+        }
+    }, [updateEmailLimiter]);
 
     return (
         <div style={{ background: globalData.cusBlack, display: "grid" }}>
@@ -342,9 +370,15 @@ const Trade = () => {
                                                     Order {TradeData.successful === true ? 'Successful' : "Failed"}.
                                                 </span>
                                                 :
-                                                <span>
-                                                    Order would be cancelled in {parseInt(TimeLeft / 60)} minutes, {TimeLeft - (parseInt(TimeLeft / 60) * 60)} seconds.
-                                                </span>
+                                                (TradeData.receipt !== null ?
+
+                                                    <span>
+                                                        Awaiting USDT release confirmation.
+                                                    </span>
+                                                    :
+                                                    <span>
+                                                        Order would be cancelled in {parseInt(TimeLeft / 60)} minutes, {TimeLeft - (parseInt(TimeLeft / 60) * 60)} seconds.
+                                                    </span>)
                                         }
                                         <br />
                                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -393,20 +427,20 @@ const Trade = () => {
                                         </div>
                                     </div>
                                     {
-                                        TradeData.successful === null &&
+                                        (TradeData.successful === null || (TradeData.receipt !== null && TradeData.successful === null)) &&
                                         <div className="Center Horizontally">
 
                                             {
                                                 (TradeData.receipt !== null && TradeData.buyerId === globalData.user.user)
                                                 &&
                                                 <div>
-                                                    <p style={{ background: globalData.cusGold, color: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", textAlign: "center", cursor: "pointer", fontWeight: "700" }} onClick={() => {
+                                                    <div style={{ background: globalData.cusGold, color: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", textAlign: "center", cursor: "pointer", fontWeight: "700" }} onClick={() => {
                                                         GenerateVerCode();
                                                     }}>
                                                         {
                                                             Sending ? <Activity /> : "Release USDT"
                                                         }
-                                                    </p>
+                                                    </div>
 
                                                     <div id="releaseOutter" style={{ position: "relative", height: "50vh", background: "rgba(0,0,0,0.8)", zIndex: "-1" }} className="Center Vertically Horizontally">
                                                         <div id="releaseInner" className="Center Horizontally" style={{ position: "absolute", width: "80vw", left: "100vw", transition: "left 0.5s linear" }}>
@@ -420,9 +454,18 @@ const Trade = () => {
                                                                 Release
                                                             </button>
                                                             <br />
-                                                            <button className="btn btn-info" onClick={GenerateVerCode}>
-                                                                Request New Code
-                                                            </button>
+                                                            {
+                                                                Sending ?
+                                                                    <button className="btn btn-info" >
+
+                                                                        {emailLimit !== null ? "Request New Code(" + emailLimit + "s)" : "Sending mail..."}
+                                                                    </button>
+                                                                    :
+
+                                                                    <button className="btn btn-info" onClick={GenerateVerCode}>
+                                                                        Request New Code
+                                                                    </button>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -432,7 +475,7 @@ const Trade = () => {
                                                 (TradeData.receipt === null && TradeData.buyerId !== globalData.user.user)
                                                 &&
                                                 <div>
-                                                    <label for={Receipt === null ? "receipt" : ""}>
+                                                    <label for={Receipt === null ? "receipt" : ""} id="receiptLabel">
                                                         <p style={{ background: globalData.cusGold, color: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", textAlign: "center", cursor: "pointer", fontWeight: "700" }}>
                                                             I have made bank payment
                                                         </p>
@@ -502,15 +545,35 @@ const Trade = () => {
                                                             )}
                                                             {
                                                                 (TradeData.receipt !== null || Receipt !== null) &&
-                                                                <div style={{ paddingLeft: (globalData.user.user !== TradeData.buyerId ? "30vw" : '0'), position: "relative", zIndex: "1" }}>
-                                                                    <div style={{ zIndex: TradeData.receipt !== null ? "-1" : "1", width: "60vw", height: "60vw", position: "absolute", background: "rgba(0,0,0,0.8" }} className="Center Vertically">
-                                                                        <Activity />
+                                                                <div>
+                                                                    <div style={{ paddingLeft: (globalData.user.user !== TradeData.buyerId ? "30vw" : '0'), position: "relative", zIndex: "1" }}>
+                                                                        <div style={{ zIndex: TradeData.receipt !== null ? "-1" : "1", width: "60vw", height: "60vw", position: "absolute", background: "rgba(0,0,0,0.8" }} className="Center Vertically">
+                                                                            <Activity />
+                                                                        </div>
+                                                                        <img src={TradeData.receipt !== null ? globalData.BH + TradeData.receipt : Receipt} alt="receipt" style={{ width: "60vw", height: "60vw" }} onClick={() => {
+                                                                            if (TradeData.receipt !== null) {
+                                                                                SetITE(TradeData.receipt);
+                                                                            }
+                                                                            return;
+                                                                        }} />
+
                                                                     </div>
-                                                                    <img src={TradeData.receipt !== null ? globalData.BH + TradeData.receipt : Receipt} alt="receipt" style={{ width: "60vw", height: "60vw" }} onClick={() => {
-                                                                        SetITE(TradeData.receipt);
-                                                                        return;
-                                                                    }} />
+                                                                    {
+                                                                        TradeData.buyerId !== globalData.user.user &&
+                                                                        <div className="Center Horizontally">
+
+                                                                            <button className="btn btn-info" onClick={() => {
+                                                                                SetReceipt(null);
+                                                                                SetTD(prev => ({ ...prev, receipt: null }));
+                                                                                return;
+                                                                            }}>
+
+                                                                                Change
+                                                                            </button>
+                                                                        </div>
+                                                                    }
                                                                 </div>
+
                                                             }
                                                         </div>
                                                 )

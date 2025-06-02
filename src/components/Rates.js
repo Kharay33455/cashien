@@ -36,12 +36,15 @@ const Rates = () => {
 
 
     const forwardQR = async (img) => {
-        if(initiating){
+        if (initiating) {
             return;
         }
         SetInit(true);
         const bank = document.getElementById("bank_name").value;
-        const amount = document.getElementById("inputusdt").value;
+        const amount = document.getElementById("inputusdt").value
+
+
+
         if (bank.length === 0) {
             DisplayMessage("Enter a valid institution name to proceed with your payment.", "red");
             SetInit(false);
@@ -53,6 +56,7 @@ const Rates = () => {
             SetInit(false);
             return;
         }
+
 
         const resp = await fetch(globalData.BH + "/cashien/init-new-qr-trade/", {
             method: "POST",
@@ -70,10 +74,14 @@ const Rates = () => {
         } else if (resp.status === 301) {
             DisplayMessage("Your session has expired. Sign in to continue.", "red");
             SetInit(false);
+            SetSelected(null);
+            SetPreSel(null);
             return;
         } else {
             DisplayMessage(result['msg'], "red");
             SetInit(false);
+            SetSelected(null);
+            SetPreSel(null);
             return;
         }
 
@@ -638,7 +646,7 @@ const Rates = () => {
                 <br />
                 <div className="Center Horizontally">
                     <div style={{ width: "50vw", height: "40vw", border: "1px, solid " + globalData.cusGold }} className="Center Horizontally Vertically">
-                        <label for="inputqrcode" style={{ cursor: "pointer" }}>
+                        <label for="inputqrcode" style={{ cursor: "pointer" }} id="imgtrigger">
                             {
                                 image === null ?
                                     <div>
@@ -652,7 +660,10 @@ const Rates = () => {
                                     </div>
                                     :
                                     <div>
-                                        <img src={image} alt="QR Code" style={{ width: "30vw", height: "30vw" }} />
+                                        <img src={image} alt="QR Code" style={{ width: "30vw", height: "30vw" }} onClick={() => {
+                                            SetImage(null)
+                                            document.getElementById("imgtrigger").click();
+                                        }} />
                                     </div>
                             }
                         </label>

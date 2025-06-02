@@ -1,2 +1,4 @@
 forgot password
 implement multiple payment options
+user cannot cjanhe receit after uload
+user caannot change qr after upload
