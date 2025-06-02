@@ -36,15 +36,21 @@ const Rates = () => {
 
 
     const forwardQR = async (img) => {
+        if(initiating){
+            return;
+        }
+        SetInit(true);
         const bank = document.getElementById("bank_name").value;
         const amount = document.getElementById("inputusdt").value;
         if (bank.length === 0) {
             DisplayMessage("Enter a valid institution name to proceed with your payment.", "red");
+            SetInit(false);
             return;
         }
 
         if (img === null) {
             DisplayMessage("Invalid QR code.", "red");
+            SetInit(false);
             return;
         }
 
@@ -63,9 +69,11 @@ const Rates = () => {
             navigate("/trade/" + result['trade_id']);
         } else if (resp.status === 301) {
             DisplayMessage("Your session has expired. Sign in to continue.", "red");
+            SetInit(false);
             return;
         } else {
             DisplayMessage(result['msg'], "red");
+            SetInit(false);
             return;
         }
 
@@ -147,12 +155,14 @@ const Rates = () => {
                 DisplayMessage(results['msg'], "red");
                 SetSelected(null);
                 SetPreSel(null);
+                SetInit(false);
             } else {
                 DisplayMessage("An unexpected error has occured.", "red");  // unexpected errors
                 SetSelected(null);
                 SetPreSel(null);
+                SetInit(false);
             }
-            SetInit(false);
+
 
         } catch (error) {
             // cannot connect to server
@@ -585,9 +595,6 @@ const Rates = () => {
                                                 else if (formFormat === "scan") {
                                                     forwardQR(image);
                                                 }
-
-
-
                                             }}>
                                                 {
                                                     initiating ?
@@ -655,6 +662,12 @@ const Rates = () => {
             </div>
         )
     }
+
+    useEffect(() => {
+        return () => {
+            SetInit(false);
+        }
+    }, [])
 
     // fetch data from back end
     useEffect(() => {

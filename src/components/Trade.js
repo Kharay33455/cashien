@@ -61,9 +61,9 @@ const Trade = () => {
             return;
         }
         SetSending(true);
-        const code = (Math.random() * (999999 - 234234)).toString().split(".")[0];
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         SetRC(code);
-        console.log(globalData)
+        
         const mailParams = {
             "subject": "Release order for " + addComma(TradeData.amount.toString().split(".")[0]) + " USDT on your Cashien account.",
             "email": globalData.user.email,
@@ -156,72 +156,89 @@ const Trade = () => {
             });
             const result = await resp.json();
             if (resp.status === 200) {
-                console.log(result)
+                
                 SetTD(result['trade_data']);
                 SetTL(result['trade_data']['time_left']);
                 SetTemplates(result['templates']);
                 SetMessages(result['messages']);
-                const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/");
-                ws.onopen = () => {
-                    if (result['trade_data']['time_left'] > 0) {
-                        const mailParams = {
-                            "subject": "[Cashien] There is a new order waiting for you to process",
-                            "email": result['trade_data']['other_email'],
-                            "contentOne": "There is an order of " + addComma(result['trade_data']['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
-                            "passcode": tradeId,
-                            "contentTwo": "You have "+ (result['trade_data']['time_left'] * 1.00/60).toString().split(".")[0] +" minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
-                            "contentThree": "Thank you for choosing Cashien!"
-                        }
+                if (result['trade_data']['time_left'] > 0 && globalData.user !== undefined) {
+                    const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/" + globalData.cookie + "/");
+                    ws.onopen = () => {
+                        // edit this
+                        if (globalData.appEnv === "PROD") {
+                            const mailParams = {
+                                "subject": "[Cashien] There is a new order waiting for you to process",
+                                "email": result['trade_data']['other_email'],
+                                "contentOne": "There is an order of " + addComma(result['trade_data']['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
+                                "passcode": tradeId,
+                                "contentTwo": "You have " + (result['trade_data']['time_left'] * 1.00 / 60).toString().split(".")[0] + " minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
+                                "contentThree": "Thank you for choosing Cashien!"
+                            }
 
-                        const emailJsScript = document.createElement("script");
-                        emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-                        emailJsScript.onload = () => {
-                            (function () {
-                                if (window.emailjs) {
-                                    window.emailjs.init({
-                                        publicKey: "0KyRWIATeIiNruEXL",
-                                        limitRate: {
-                                            id: "service_zy556fn",
-                                            throttle: 100,
-                                        }
-                                    });
-                                    window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
-                                        (response) => {
-                                            if (response.status === 200) {
-                                                document.body.removeChild(emailJsScript);
-                                                return;
-                                            } else {
-                                                document.body.removeChild(emailJsScript);
-                                                return;
+                            const emailJsScript = document.createElement("script");
+                            emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+                            emailJsScript.onload = () => {
+                                (function () {
+                                    if (window.emailjs) {
+                                        window.emailjs.init({
+                                            publicKey: "0KyRWIATeIiNruEXL",
+                                            limitRate: {
+                                                id: "service_zy556fn",
+                                                throttle: 100,
                                             }
-                                        }
-                                    );
+                                        });
+                                        window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
+                                            (response) => {
+                                                if (response.status === 200) {
+                                                    document.body.removeChild(emailJsScript);
+                                                    return;
+                                                } else {
+                                                    document.body.removeChild(emailJsScript);
+                                                    return;
+                                                }
+                                            }
+                                        );
 
 
-                                }
-                            })();
+                                    }
+                                })();
+                            }
+                            document.body.appendChild(emailJsScript);
                         }
-                        document.body.appendChild(emailJsScript);
-                    }
 
-                }
-                ws.onclose = () => {
-                    SetSoc(null);
-                }
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    if (data['type'] === "new_text") {
-                        SetMessages(prev => [...prev, data['message']]);
-                    } else if (data['type'] === "receipt") {
-                        SetTD(prev => ({ ...prev, receipt: data['image_url'] }));
-                    } else if (data['type'] === "release") {
-                        SetTD(prev => ({ ...prev, successful: true, timeToProcess: data["context"]['time_to_process'] }));
-                        SetTL(0);
-                        DisplayMessage("Trade Successful", "green");
                     }
+                    ws.onclose = () => {
+                        SetSoc(null);
+                    }
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        if (data['type'] === "new_text") {
+                            if (data.message.sender === globalData.user.user) {
+                                let edited = false
+                                SetMessages(prev => (
+                                    prev.map(item => {
+                                        if (!item.is_sent && item.message_text === data.message.message_text && !edited) {
+                                            edited = true
+                                            return { ...item, is_sent: true };
+                                        }
+                                        return item;
+                                    })
+                                ));
+                            } else {
+                                SetMessages(prev => ([...prev, data.message]));
+                            }
 
+                        } else if (data['type'] === "receipt") {
+                            SetTD(prev => ({ ...prev, receipt: data['image_url'] }));
+                        } else if (data['type'] === "release") {
+                            SetTD(prev => ({ ...prev, successful: true, timeToProcess: data["context"]['time_to_process'] }));
+                            SetTL(0);
+                            DisplayMessage("Trade Successful", "green");
+                        }
+
+                    }
+                    SetSoc(ws);
                 }
-                SetSoc(ws);
                 return;
             } else if (resp.status === 400) {
                 DisplayMessage(result['msg'], "red");
@@ -234,14 +251,14 @@ const Trade = () => {
         return () => {
             SetSoc(null);
         }
-    }, [globalData.cookie, globalData.BH, tradeId, globalData.WS]);
+    }, [globalData.cookie, globalData.BH, tradeId, globalData.WS, globalData.appEnv, globalData.user]);
 
 
     useEffect(() => {
         if (RT) {
             try {
 
-                document.getElementById("releaseOutter").style.zIndex = "1";
+                document.getElementById("releaseOutter").style.zIndex = "2";
                 document.getElementById("releaseInner").style.left = "0vw";
             } catch {
 
@@ -415,7 +432,7 @@ const Trade = () => {
                                                 (TradeData.receipt === null && TradeData.buyerId !== globalData.user.user)
                                                 &&
                                                 <div>
-                                                    <label for="receipt">
+                                                    <label for={Receipt === null ? "receipt" : ""}>
                                                         <p style={{ background: globalData.cusGold, color: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", textAlign: "center", cursor: "pointer", fontWeight: "700" }}>
                                                             I have made bank payment
                                                         </p>
@@ -462,7 +479,7 @@ const Trade = () => {
                                                     <img src={globalData.BH + TradeData.qr_code} onClick={() => {
                                                         SetITE(TradeData.qr_code)
                                                         return;
-                                                    }} alt="QR Code" />
+                                                    }} alt="QR Code" style={{ width: "50vw" }} />
                                                 </div>
                                             }
                                             {
@@ -479,14 +496,17 @@ const Trade = () => {
                                                         <div>
                                                             {Messages.map((message, index) =>
 
-                                                                <div className={message.sender === globalData.user.user ? "MyText" : "OtherText"} key={index}>
+                                                                <div className={message.sender === globalData.user.user ? "MyText" : "OtherText"} key={index} style={{ color: message.is_sent ? (message.sender === globalData.user.user ? "black" : "white") : "gray" }}>
                                                                     {message.message_text}
                                                                 </div>
                                                             )}
                                                             {
-                                                                TradeData.receipt !== null &&
-                                                                <div style={{ paddingLeft: (globalData.user.user !== TradeData.buyerId ? "30vw" : '0') }}>
-                                                                    <img src={globalData.BH + TradeData.receipt} alt="receipt" style={{ width: "60vw" }} onClick={() => {
+                                                                (TradeData.receipt !== null || Receipt !== null) &&
+                                                                <div style={{ paddingLeft: (globalData.user.user !== TradeData.buyerId ? "30vw" : '0'), position: "relative", zIndex: "1" }}>
+                                                                    <div style={{ zIndex: TradeData.receipt !== null ? "-1" : "1", width: "60vw", height: "60vw", position: "absolute", background: "rgba(0,0,0,0.8" }} className="Center Vertically">
+                                                                        <Activity />
+                                                                    </div>
+                                                                    <img src={TradeData.receipt !== null ? globalData.BH + TradeData.receipt : Receipt} alt="receipt" style={{ width: "60vw", height: "60vw" }} onClick={() => {
                                                                         SetITE(TradeData.receipt);
                                                                         return;
                                                                     }} />
@@ -508,6 +528,7 @@ const Trade = () => {
                                                 {
                                                     Templates.map((item, index) =>
                                                         <div key={index} style={{ whiteSpace: "nowrap", background: globalData.cusGray, color: globalData.cusBlack, padding: "1vh 2vh", margin: "2vh 0", borderRadius: "50vw", cursor: "pointer" }} onClick={() => {
+                                                            SetMessages(prev => ([...prev, { "message_text": item['message_text'], "sender": globalData.user.user, "time": "sending..." }]))
                                                             socket.send(JSON.stringify({ 'type': 'new_text', 'text': item['message_text'] }))
                                                         }}>
                                                             {item.message_text}

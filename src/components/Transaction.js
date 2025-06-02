@@ -72,7 +72,7 @@ const Transaction = () => {
                     "Authorization": globalData.cookie,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ "wallet": wallet, "amount": formatNumber(amount), "sub":sub })
+                body: JSON.stringify({ "wallet": wallet, "amount": formatNumber(amount), "sub": sub })
             });
             const result = await resp.json();
             if (resp.status === 200) {
@@ -197,9 +197,9 @@ const Transaction = () => {
 
                                 <p style={{ background: globalData.cusBlack, padding: "1vh 2vh", width: "80vw", whitespace: "normal", overflowWrap: "break-word", textAlign: "center", fontSize: "1.3em" }}>
                                     {
-                                        globalData.user.selfieApproved ? 
-                                    (WalletAddress !== null && WalletAddress) :
-                                    "Complete your verification process to deposit."}
+                                        globalData.user.selfieApproved ?
+                                            (WalletAddress !== null && WalletAddress) :
+                                            "Complete your verification process to deposit."}
                                 </p>
                             </div>
                             <div>
@@ -235,11 +235,22 @@ const Transaction = () => {
                 <div className="list-group">
                     {
                         Transactions === null ? <Activity /> :
-                            Transactions.map((item, index) =>
-                                <div key={index}>
-                                    <SingleTransaction params={{ "trans": item }} />
+
+                            (Transactions.length === 0 ?
+                                <div className="Center Vertically Horizontally" style={{height:"50vh"}}>
+                                    <p style={{fontSize:"1.5em", color:globalData.cusGray, textAlign:"center"}}>
+                                        Your transactions would show up here.
+                                    </p>
                                 </div>
+
+                                :
+                                Transactions.map((item, index) =>
+                                    <div key={index}>
+                                        <SingleTransaction params={{ "trans": item }} />
+                                    </div>
+                                )
                             )
+
                     }
                 </div>
             </div>

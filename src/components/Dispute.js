@@ -11,6 +11,8 @@ const Dispute = () => {
     const tradeId = useParams()['tradeId'];
     const [disputeWS, SetDWS] = useState(null);
     const [DisputeData, SetDisputeData] = useState(null);
+    const [Messages, SetMessages] = useState(null);
+
 
 
     const SendNewMessage = (imageToSend) => {
@@ -19,22 +21,41 @@ const Dispute = () => {
         if (text.length === 0 && imageToSend === null) {
             return;
         }
-        disputeWS.send(JSON.stringify({ "text": text, "img": imageToSend, "type": "newMessage" }));
+        const msg_id = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+        SetMessages(prev => ([...prev, { "image": imageToSend, "is_sent": false, "text": text, "time": "sending...", "trade": "none", sender: globalData.user.user, "msg_id": msg_id }]));
+        disputeWS.send(JSON.stringify({ "text": text, "img": imageToSend, "type": "newMessage", "msg_id": msg_id }));
     }
 
     useEffect(() => {
         (async function () {
             if (globalData.user !== undefined) {
                 try {
-                    const newWs = new WebSocket(globalData.WS + "/ws/cashien/dispute/" + tradeId + "/");
+                    const newWs = new WebSocket(globalData.WS + "/ws/cashien/dispute/" + tradeId + "/" + globalData.cookie + "/");
                     newWs.onmessage = (e) => {
                         const data = JSON.parse(e.data)
                         switch (data['type']) {
                             case "dispute_data":
-                                SetDisputeData(data['data']);
+                                console.log(data)
+                                SetDisputeData(data['data']['trade data']);
+                                SetMessages(data['data']['messages'])
                                 break;
                             case "new_message":
-                                SetDisputeData(prev => ({ ...prev, messages: [...prev.messages, data['data']] }));
+
+                                if (data.data.sender !== globalData.user.user) {
+                                    SetMessages(prev => ([...prev, data['data']]));
+                                } else {
+                                    SetMessages(prev =>
+                                    (
+                                        prev.map((item) => {
+                                            if (item.msg_id === data.data.msg_id) {
+                                                return data.data;
+                                            } else {
+                                                return item;
+                                            }
+                                        })
+
+                                    ))
+                                }
                                 break;
                             default:
                                 break;
@@ -49,7 +70,7 @@ const Dispute = () => {
                 }
             }
         })();
-    }, [globalData.user, globalData.WS, tradeId]);
+    }, [globalData.user, globalData.WS, tradeId, globalData.cookie]);
 
 
     const DisputeHeader = () => {
@@ -62,28 +83,56 @@ const Dispute = () => {
                 <Link to={"/trade/" + tradeId}>
                     Go to trade
                 </Link>
+                <br />
+                {
+                    DisputeData !== null
+                    &&
+                    <div>
+
+                        <span>
+                            {DisputeData.amount} USDT
+                        </span>
+                        &nbsp;
+                        to
+                        &nbsp;
+                        <span>
+                            {DisputeData.bank_name}
+                        </span>
+
+
+                    </div>
+                }
             </div>
         )
     }
 
+
+
+    useEffect(() => {
+        const msgBox = document.getElementById("msgBox");
+        msgBox.scrollTo({
+            top: msgBox.scrollHeight,
+            behavior: "smooth"
+        });
+    }, [Messages]);
     const DisputeMessages = () => {
         return (
             <div>
                 <div className="Center Horizontally">
-                    <div style={{ width: "90vw", background: "black", height: "66vh", overflow:"scroll" }}>
+                    <div style={{ width: "90vw", background: "black", height: "66vh", overflowY: "scroll", padding: "1vh 1vh" }} id="msgBox" >
                         <div className="Center Horizontally" style={{ padding: "2vh 0" }}>
                             All chats are recorded.
                         </div>
                         {
-                            DisputeData === null ?
+                            Messages === null ?
                                 <Activity />
                                 :
-                                (DisputeData.messages.length === 0 ?
+                                (Messages.length === 0 ?
                                     <div className="Center Horizontally Vertically" style={{ minHeight: "30vh" }}>
                                         Send a message to start dispute.
                                     </div>
                                     :
-                                    DisputeData.messages.map((item, index) =>
+                                    Messages.map((item, index) =>
                                         <div key={index}>
                                             <SingleDisputeMessage param={{ 'message': item }} />
                                         </div>
@@ -98,7 +147,7 @@ const Dispute = () => {
 
 
     const SingleDisputeMessage = ({ param }) => {
-        console.log(globalData.user.user, param)
+
         return (
             <div>
                 <div>
@@ -106,15 +155,22 @@ const Dispute = () => {
                         {
                             param.message.image !== null
                             &&
-                            <img src={globalData.BH + param.message.image} style={{width:"100%"}} alt="message"/>
+                            <div style={{ position: "relative" }}>
+
+                                <div style={{ zIndex: param.message.is_sent ? "-1" : "1", width: "40vw", height: "60vw", position: "absolute", background: "rgba(0,0,0,0.8" }} className="Center Vertically">
+                                    <Activity />
+                                </div>
+
+                                <img src={param.message.is_sent ? globalData.BH + param.message.image : param.message.image} style={{ width: "40vw", height: "60vw" }} alt="message" />
+                            </div>
                         }
-                        <span>
+                        <span style={{ color: globalData.user.user !== param.message.sender ? "white" : (param.message.is_sent ? "black" : "gray") }}>
                             {param.message.text}
                         </span>
-                        <div style={{display:"flex", alignItems:"last baseline", justifyContent:"flex-end", fontSize:"0.7em"}}>
-                            {new Date(param.message.time).toLocaleTimeString([],{
-                                hour:"2-digit",
-                                minute :"2-digit"
+                        <div style={{ display: "flex", alignItems: "last baseline", justifyContent: "flex-end", fontSize: "0.7em" }}>
+                            {param.message.time === "sending..." ? "sending..." : new Date(param.message.time).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit"
                             })}
                         </div>
                     </div>
@@ -167,6 +223,8 @@ const Dispute = () => {
             </div>
         )
     }
+
+
     return (
         <div style={{ minHeight: "100vh", background: globalData.cusBlack, color: globalData.cusGray, padding: "0 1vh" }}>
             <div style={{ display: "grid", gridTemplateRows: "23% 67% 10%", height: "100vh" }}>

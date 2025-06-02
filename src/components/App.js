@@ -12,7 +12,7 @@ import Faq from "./Faq";
 import Transaction from "./Transaction";
 import ForgotPass from "./ForgotPass";
 import { HashRouter, Routes, Route, Link } from "react-router";
-import { useState, createContext, useRef, useEffect } from "react";
+import { useState, createContext, useRef, useEffect, useCallback } from "react";
 import env from "react-dotenv";
 import NewPassword from './NewPassword';
 import Dispute from './Dispute';
@@ -31,10 +31,60 @@ function App() {
   const BH = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_BH_DEV : env.REACT_APP_BH_PROD;
   const WS = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_WS_DEV : env.REACT_APP_WS_PROD;
   const appEnv = env.REACT_APP_ENV;
+  const [sockets, SetSockets] = useState(false);
 
+
+  const PingSockets = useCallback(() => {
+    (async function () {
+      try {
+        const server = WS.split("//")[1];
+        const resp = await fetch(window.location.protocol + "//" + server);
+        if (resp.status === 200) {
+          const result = await resp.json();
+          if (result['msg'] === "I am awake") {
+            SetSockets(true);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+
+  }, [WS]);
 
 
   const [cookie, SetCookie] = useState(document.cookie.split("token=")[document.cookie.split("token=").length - 1]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (sockets) {
+        PingSockets();
+      } else {
+        clearInterval(interval);
+      }
+    }, 600000);
+
+    return ()=>{
+      clearInterval(interval);
+    }
+  }, [sockets, PingSockets]);
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (sockets) {
+        clearInterval(interval);
+      } else {
+        PingSockets();
+      }
+    }, 5000);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    }
+  }, [PingSockets, sockets]);
 
   const SignOut = async () => {
     if (fetching) {
@@ -83,7 +133,7 @@ function App() {
         <HashRouter>
           <nav className="navbar navbar-dark bg-dark fixed-top">
             <div className="container-fluid">
-              <Link className="navbar-brand" to="/" style={{fontWeight:"900"}}>CA$HI&euro;N</Link>
+              <Link className="navbar-brand" to="/" style={{ fontWeight: "900" }}>CA$HI&euro;N</Link>
               <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
               </button>
@@ -183,8 +233,8 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/transactions/*" element={<Transaction />} />
             <Route path="/forgot-password" element={<ForgotPass />} />
-            <Route path="/reset-password/:otp" element={<NewPassword/>}/>
-            <Route path="/dispute/:tradeId" element={<Dispute/>}/>
+            <Route path="/reset-password/:otp" element={<NewPassword />} />
+            <Route path="/dispute/:tradeId" element={<Dispute />} />
           </Routes>
         </HashRouter>
 
