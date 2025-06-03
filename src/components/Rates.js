@@ -23,8 +23,8 @@ const Rates = () => {
     const [ALTD, SetALTD] = useState(null); // sorted add to user preference
     // filters
     const [CNY, SetC] = useState(true);
-    const [EUR, SetE] = useState(true);
-    const [USD, SetU] = useState(true);
+    const [EUR, SetE] = useState(false);
+    const [USD, SetU] = useState(false);
 
     const [currIndex, SetCI] = useState(singleDisplayCount);    // how much data has been read so far
     const [filter, SetFilter] = useState("Ratings");    // sort by 

@@ -12,17 +12,11 @@ const Login = () => {
     const navigate = useNavigate();
 
     const SubmitLoginForm = async () => {
-        const acceptables = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '@', '#', '$', '%', '*', '_', '+', '=', '-', '.', ',', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm']
+        
         const username = document.getElementById("useroremail").value.trim()
         const password = document.getElementById("password").value.trim();
-        const values = username + password;
-        Array.from(values).forEach((item) => {
-            if (!acceptables.includes(item)) {
-                DisplayMessage("Invalid characters present in username or password.", "red");
-                return;
-            }
-        });
-
+        
+        
         SetS(true);
         const resp = await fetch(globalData.BH + "/cashien/login/",
             {

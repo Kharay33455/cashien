@@ -80,6 +80,15 @@
   margin-bottom: 1vh
 }
 
+
+.AdminText {
+  color: #F3C31C;
+  background-color: #29303D;
+  padding: 1vh 2vh;
+  border-radius: 5vw;
+  margin-bottom: 1vh
+}
+
 .IdBox {
   border: 2px solid #F3C31C;
   margin: 5vmin;

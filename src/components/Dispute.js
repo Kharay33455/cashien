@@ -35,12 +35,10 @@ const Dispute = () => {
                         const data = JSON.parse(e.data)
                         switch (data['type']) {
                             case "dispute_data":
-                                console.log(data)
                                 SetDisputeData(data['data']['trade data']);
                                 SetMessages(data['data']['messages'])
                                 break;
                             case "new_message":
-
                                 if (data.data.sender !== globalData.user.user) {
                                     SetMessages(prev => ([...prev, data['data']]));
                                 } else {
@@ -147,11 +145,12 @@ const Dispute = () => {
 
 
     const SingleDisputeMessage = ({ param }) => {
+        console.log(DisputeData, param)
 
         return (
             <div>
                 <div>
-                    <div className={param.message.sender === globalData.user.user ? "MyText" : "OtherText"}>
+                    <div className={param.message.sender === globalData.user.user ? "MyText" : ((param.message.sender !== DisputeData.buyerId && param.message.sender !== DisputeData.sellerId) ? "AdminText" : "OtherText")}>
                         {
                             param.message.image !== null
                             &&
@@ -164,9 +163,10 @@ const Dispute = () => {
                                 <img src={param.message.is_sent ? globalData.BH + param.message.image : param.message.image} style={{ width: "40vw", height: "60vw" }} alt="message" />
                             </div>
                         }
-                        <span style={{ color: globalData.user.user !== param.message.sender ? "white" : (param.message.is_sent ? "black" : "gray") }}>
+                        
+                        <p style={{ color: (param.message.sender !== DisputeData.sellerId && param.message.sender !== DisputeData.buyerId) ? globalData.cusGold :  (globalData.user.user !== param.message.sender ? "white" : (param.message.is_sent ? "black" : "gray")), textAlign: (param.message.sender !== DisputeData.buyerId && param.message.sender !== DisputeData.sellerId) ? "center" : "auto" }}>
                             {param.message.text}
-                        </span>
+                        </p>
                         <div style={{ display: "flex", alignItems: "last baseline", justifyContent: "flex-end", fontSize: "0.7em" }}>
                             {param.message.time === "sending..." ? "sending..." : new Date(param.message.time).toLocaleTimeString([], {
                                 hour: "2-digit",
