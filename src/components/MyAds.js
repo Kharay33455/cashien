@@ -446,7 +446,7 @@ const MyAds = () => {
                                 </div>
                                 <div>
                                     <textarea className="dark" id="terms">
-
+                                        Default terms
                                     </textarea>
                                 </div>
 

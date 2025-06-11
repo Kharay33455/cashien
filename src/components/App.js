@@ -32,7 +32,15 @@ function App() {
   const WS = env.REACT_APP_ENV === "DEV" ? env.REACT_APP_WS_DEV : env.REACT_APP_WS_PROD;
   const appEnv = env.REACT_APP_ENV;
   const [sockets, SetSockets] = useState(false);
+  const Translator = useRef(null);
 
+  // loyalty announcement
+  const LoyaltyAnoucement = useCallback(async (server) => {
+    const resp = await fetch(window.location.protocol + "//" + server + "/cashien/loyalty-check");
+    if(resp.status){
+      
+    }
+  }, []);
 
   const PingSockets = useCallback(() => {
     (async function () {
@@ -43,6 +51,7 @@ function App() {
           const result = await resp.json();
           if (result['msg'] === "I am awake") {
             SetSockets(true);
+            LoyaltyAnoucement(server);
           }
         }
       } catch (error) {
@@ -50,7 +59,7 @@ function App() {
       }
     })();
 
-  }, [WS]);
+  }, [WS, LoyaltyAnoucement]);
 
 
   const [cookie, SetCookie] = useState(document.cookie.split("token=")[document.cookie.split("token=").length - 1]);
@@ -64,7 +73,7 @@ function App() {
       }
     }, 600000);
 
-    return ()=>{
+    return () => {
       clearInterval(interval);
     }
   }, [sockets, PingSockets]);
@@ -124,6 +133,36 @@ function App() {
       SetF(false);
     })();
   }, [BH, cookie]);
+
+
+
+
+
+
+  // append translator
+  useEffect(() => {
+
+    window.googleTranslateElementInit = function () {
+      new window.google.translate.TranslateElement(
+        { pageLanguage: 'en' },
+        'google_translate_element'
+      );
+    };
+    const TranslatorScript = document.createElement("script");
+    TranslatorScript.type = "text/javascript";
+    TranslatorScript.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.body.appendChild(TranslatorScript);
+  }, []);
+
+  useEffect(() => {
+    const clearHeadTimer = setInterval(() => {
+      const head = document.getElementById(":1.container");
+      if (head) {
+        head.style.display = "none";
+        clearInterval(clearHeadTimer);
+      }
+    }, 3000);
+  }, []);
 
 
   return (
@@ -220,6 +259,12 @@ function App() {
               </div>
             </div>
           </nav>
+
+          <div ref={Translator} style={{ position: "fixed", top: "70vh", zIndex: "3" }}>
+            <div id="google_translate_element">
+
+            </div>
+          </div>
 
           <Routes>
             <Route path="/" element={<Index />} />

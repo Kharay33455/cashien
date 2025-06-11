@@ -17,7 +17,6 @@ const Trade = () => {
     const [Receipt, SetReceipt] = useState(null);
     const [Rating, SetRating] = useState(null);
     const [RT, SetRT] = useState(false);
-    const [ReleaseCode, SetRC] = useState(null);
     const [Sending, SetSending] = useState(false);
     const [ImgToExpand, SetITE] = useState(null);
     const navigate = useNavigate();
@@ -57,64 +56,42 @@ const Trade = () => {
         SetTL(prev => (prev === null || prev <= 0) ? 0 : prev - 1);
     }, []);
 
-    const GenerateVerCode = () => {
+    const GenerateVerCode = async () => {
         if (Sending) {
             return;
         }
         SetSending(true);
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        SetRC(code);
 
-        const mailParams = {
-            "subject": "Release order for " + addComma(TradeData.amount.toString().split(".")[0]) + " USDT on your Cashien account.",
-            "email": globalData.user.email,
-            "contentOne": "An order for " + addComma(TradeData.amount.toString().split(".")[0]) + " USDT has been placed on your account. Use the code below to release the USDT only after you have confirmed that payment has been received in your account.",
-            "passcode": code,
-            "contentTwo": "Cashien would never contact you regarding any links. Please beware of phishing schemes and do not click on suspicious messages or emails claiming to be from us.",
-            "contentThree": "Thank you for choosing Cashien!"
+        const resp = await fetch(window.location.protocol + "//" + globalData.WS.split("//")[1] + "/set-ver-code/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": globalData.cookie
+            },
+            body: JSON.stringify({ "tradeId": tradeId, "amount": addComma(TradeData.amount.toString().split(".")[0]) })
+        })
+        if (resp.status === 204) {
+            DisplayMessage("Verification code sent to " + globalData.user.email + ".", "green");
+            SetRT(true);
+            SetEL(120);
+        } else {
+            DisplayMessage("Failed to send mail", "red");
+            SetSending(false);
         }
-
-        const emailJsScript = document.createElement("script");
-        emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-        emailJsScript.onload = () => {
-            (function () {
-                if (window.emailjs) {
-                    window.emailjs.init({
-                        publicKey: "0KyRWIATeIiNruEXL",
-                        limitRate: {
-                            id: "service_zy556fn",
-                            throttle: 10000,
-                        }
-                    });
-                    window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
-                        (response) => {
-                            if (response.status === 200) {
-                                DisplayMessage("Verification code sent to " + globalData.user.email + ".", "green");
-                                SetRT(true);
-                                document.body.removeChild(emailJsScript);
-                                SetEL(120);
-                            } else {
-                                DisplayMessage("Failed to send mail", "red");
-                                document.body.removeChild(emailJsScript);
-                                SetSending(false);
-                            }
-                        }
-                    );
-
-
-                }
-            })();
-        }
-        document.body.appendChild(emailJsScript);
-
-
     }
 
-    const VerifyRelease = () => {
-        const codeFromUser = document.getElementById("releaseForm").value
-        if (codeFromUser === ReleaseCode) {
+    const VerifyRelease = async () => {
+        const codeFromUser = document.getElementById("releaseForm").value;
+        const resp = await fetch(window.location.protocol + "//" + globalData.WS.split("//")[1] + "/release/", {
+            method: "POST",
+            body: JSON.stringify({ "tradeId": tradeId, "code": codeFromUser })
+        });
+        if (resp.status === 204) {
             if (socket) {
                 socket.send(JSON.stringify({ 'type': "release" }))
+            }
+            else {
+                DisplayMessage("You have been disconnected.", "red");
             }
         } else {
             DisplayMessage("Invalid release code.", "red");
