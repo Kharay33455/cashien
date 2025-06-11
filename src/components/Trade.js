@@ -157,45 +157,30 @@ const Trade = () => {
                 const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/" + globalData.cookie + "/");
                 ws.onopen = () => {
                     // edit this
-                    if (globalData.appEnv === "PROD") {
-                        const mailParams = {
-                            "subject": "[Cashien] There is a new order waiting for you to process",
-                            "email": TradeData['other_email'],
-                            "contentOne": "There is an order of " + addComma(TradeData['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
-                            "passcode": tradeId,
-                            "contentTwo": "You have " + (TradeData['time_left'] * 1.00 / 60).toString().split(".")[0] + " minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
-                            "contentThree": "Thank you for choosing Cashien!"
-                        }
+                    if (globalData.appEnv !== "PROD") {
+                        (async function () {
+                            const mailParams = {
+                                "subject": "[Cashien] There is a new order waiting for you to process",
+                                "email": TradeData['other_email'],
+                                "contentOne": "There is an order of " + addComma(TradeData['amount'].toString().split(".")[0]) + " USDT waiting for you on your cashien account. Your order number is:",
+                                "passcode": tradeId,
+                                "contentTwo": "You have " + (TradeData['time_left'] * 1.00 / 60).toString().split(".")[0] + " minutes to handle this order before it is automatically canceled. Please review and process the order promptly to avoid any impact on your rating.",
+                                "contentThree": "Thank you for choosing Cashien!"
+                            }
+                            const alertMail = await fetch(window.location.protocol + "//" + globalData.WS.split("//")[1] + "/alert-email/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": globalData.cookie
+                                },
+                                body: JSON.stringify(mailParams)
+                            });
+                            if(alertMail){
+                                
+                            }
 
-                        const emailJsScript = document.createElement("script");
-                        emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-                        emailJsScript.onload = () => {
-                            (function () {
-                                if (window.emailjs) {
-                                    window.emailjs.init({
-                                        publicKey: "0KyRWIATeIiNruEXL",
-                                        limitRate: {
-                                            id: "service_zy556fn",
-                                            throttle: 100,
-                                        }
-                                    });
-                                    window.emailjs.send("service_zy556fn", "template_qodgij4", mailParams).then(
-                                        (response) => {
-                                            if (response.status === 200) {
-                                                document.body.removeChild(emailJsScript);
-                                                return;
-                                            } else {
-                                                document.body.removeChild(emailJsScript);
-                                                return;
-                                            }
-                                        }
-                                    );
+                        })();
 
-
-                                }
-                            })();
-                        }
-                        document.body.appendChild(emailJsScript);
                     }
 
                 }

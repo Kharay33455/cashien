@@ -40,55 +40,25 @@ const Verification = () => {
 
     const SendVerEmail = async () => {
         SetSM(true);
+        // send email
+        const mail_resp = await fetch(window.location.protocol + "//" + globalData.WS.split("//")[1] + "/verify-email/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization":globalData.cookie
+            },
+            body: JSON.stringify({ "host": window.location.protocol + "//" + window.location.host })
+        });
 
-        // make req
-        const resp = await fetch(globalData.BH + "/cashien/verify",
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": globalData.cookie
-                }
-            }
-        )
-        const result = await resp.json();
-        if (resp.status === 200) {
-            console.log(result);
-            // send email
-            const emailJsParams = {
-                "email": globalData.user.email,
-                "subject": "Verify your email address",
-                "header": "Hello " + globalData.user.user + ",",
-                "subheader": "Email verification for your Cashien account",
-                "message": "Welcome to Cashien. To complete your verification process, click on this",
-                "contentOne": "Do not share this link with anyone. If you didn't make this request, you can safely ignore this email.",
-                "contentTwo": "Cashien will never contact you about this email or ask for any login codes or links. Beware of phishing scams.",
-                "contentThree": "Thanks for joining Cashien!",
-                "verification_link": window.location.protocol + "//" + window.location.host + "/#/verification/" + result['msg'],
-
-            }
-            if (window.emailjs) {
-                window.emailjs.send("service_zy556fn", "template_khg4oer", emailJsParams).then(
-                    (response) => {
-                        if (response.status === 200) {
-                            // show msg
-                            DisplayMessage("Check your inbox at " + globalData.user.email + " to complete your verification process.", "green");
-                            SetSM(false);
-                        }
-                    },
-                    (error) => {
-                        // alert error
-                        DisplayMessage("An unexpected error has occured.", "red");
-                        SetSM(false);
-                    }
-                );
-            }
-        } else {
-            // alert error
-            DisplayMessage("An unexpected error has occured.", "red");
+        const result = await mail_resp.json();
+        if(mail_resp.status === 200){
+            DisplayMessage(result['msg'], "green");
+            SetSM(false);
+        }else{
+            DisplayMessage(result['msg'], "red");
             SetSM(false);
         }
-
+        return;
     };
 
 
@@ -143,7 +113,7 @@ const Verification = () => {
         useEffect(() => {
             (async function () {
                 if (params['*'].length !== 0) {
-                    const resp = await fetch(globalData.BH + "/cashien/verify",
+                    const resp = await fetch(globalData.BH + "/cashien/verify/verify/",
                         {
                             method: "POST",
                             headers: {
@@ -440,31 +410,6 @@ const Verification = () => {
             </div>
         )
     }
-
-
-    useEffect(() => {
-        const emailJsScript = document.createElement("script");
-        emailJsScript.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-        emailJsScript.onload = () => {
-            (function () {
-                if (window.emailjs) {
-                    window.emailjs.init({
-                        publicKey: "0KyRWIATeIiNruEXL",
-                        limitRate: {
-                            id: "service_zy556fn",
-                            throttle: 10000,
-                        }
-                    });
-                }
-            })();
-        }
-        document.body.appendChild(emailJsScript);
-
-        return () => {
-            document.body.removeChild(emailJsScript);
-        }
-
-    }, []);
 
 
     useEffect(() => {
