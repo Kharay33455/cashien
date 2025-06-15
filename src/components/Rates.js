@@ -685,9 +685,16 @@ const Rates = () => {
         (async function () {
             if (globalData.user === undefined && !globalData.fetching) {
                 DisplayMessage("Sign in to continue.", "red");
+                console.log("11111")
                 navigate("/login/rates");
                 return;
-            } else {
+            }
+        })();
+    }, [ globalData.fetching, navigate, globalData.user]); // ONLY RERENDER WHEN GLOBALDATA.BH OR GLOBALDATA.COOKIE CHANGES
+
+    useEffect(() => {
+        (async function () {
+            if (globalData.user !== undefined) {
                 const resp = await fetch(globalData.BH + "/cashien/get-ads",
                     {
                         method: "GET",
@@ -703,15 +710,13 @@ const Rates = () => {
                     SetAL(result['ads']);
                     SetALTD(result['ads'].slice(0, 50));
                 } else if (resp.status === 301) {
+                    SetAL(null);
                     DisplayMessage(result['msg'], "red");
-                    navigate("/login/rates");
+                    console.log("22222");
                 }
             }
-
         })();
-    }, [globalData.BH, globalData.fetching, globalData.cookie, navigate, globalData.user]); // ONLY RERENDER WHEN GLOBALDATA.BH OR GLOBALDATA.COOKIE CHANGES
-
-
+    }, [globalData.BH, globalData.cookie, globalData.user]);
 
     // check if an ad is slected or not, show proceed screen if so
     useEffect(() => {

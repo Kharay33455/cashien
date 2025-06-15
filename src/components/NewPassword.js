@@ -97,7 +97,7 @@ const NewPassword = () => {
 
     useEffect(() => {
         if (globalData.user !== undefined && globalData.cookie !== undefined) {
-            navigate("/profile");
+            navigate("/");
         }
     }, [globalData.user, navigate, globalData.cookie]);
     return (

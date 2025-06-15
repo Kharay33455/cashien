@@ -157,7 +157,7 @@ const Trade = () => {
                 const ws = new WebSocket(globalData.WS + "/ws/cashien/" + tradeId + "/" + globalData.cookie + "/");
                 ws.onopen = () => {
                     // edit this
-                    if (globalData.appEnv !== "PROD") {
+                    if (globalData.appEnv === "PROD") {
                         (async function () {
                             const mailParams = {
                                 "subject": "[Cashien] There is a new order waiting for you to process",
@@ -176,7 +176,7 @@ const Trade = () => {
                                 body: JSON.stringify(mailParams)
                             });
                             if(alertMail){
-                                
+
                             }
 
                         })();
@@ -453,7 +453,7 @@ const Trade = () => {
 
                                 <div style={{ background: "black", height: "100%", overflow: "hidden" }}>
                                     <div className="Center Horizontally" style={{ height: "100%", gridTemplateRows: "15vh 32vh", overflow: "hidden", gap: "1vh" }}>
-                                        <div className="Center Vertically WarningWrapper">
+                                        <div className="Center Vertically WarningWrapper" >
                                             <p className="WarningText">
                                                 {
                                                     globalData.user.user === TradeData.buyerId ?

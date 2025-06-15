@@ -2,7 +2,7 @@ import { Link, useParams, useNavigate } from "react-router";
 import env from "react-dotenv";
 import { DisplayMessage } from "./AuxFuncs";
 import { GlobalContext } from "./App";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Activity from "./subs/Activity";
 
 const Login = () => {
@@ -11,12 +11,21 @@ const Login = () => {
     const [sending, SetS] = useState(false);
     const navigate = useNavigate();
 
+
+    useEffect(() => {
+
+        if (globalData.user !== undefined && !globalData.fetching) {
+            console.log(globalData.user);
+            params.from === "index" ? navigate("/") : navigate("/" + params.from);
+        }
+    }, [globalData.user, navigate, params, globalData.fetching]);
+
     const SubmitLoginForm = async () => {
-        
+
         const username = document.getElementById("useroremail").value.trim()
         const password = document.getElementById("password").value.trim();
-        
-        
+
+
         SetS(true);
         const resp = await fetch(globalData.BH + "/cashien/login/",
             {
@@ -35,8 +44,7 @@ const Login = () => {
             } else {
                 document.cookie = "token=" + res['key'] + "; path=/; expires=Fri, 31 Dec 2025 23:59:59 GMT";
             }
-            globalData.SetCookie(res['key'])
-            params.from === "index" ? navigate("/") : navigate("/" + params.from);
+            globalData.SetCookie(res['key']);
         }
         else if (resp.status === 403) {
             DisplayMessage(res['msg'], "red");
@@ -67,7 +75,7 @@ const Login = () => {
                         </div>
 
 
-                        <button type="submit" class="btn btn-primary" onClick={(event) => {
+                        <button type="button" class="btn btn-primary" onClick={(event) => {
                             event.preventDefault();
                             !sending && SubmitLoginForm();
                         }}>

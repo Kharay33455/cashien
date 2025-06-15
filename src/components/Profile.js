@@ -17,11 +17,7 @@ const Profile = () => {
 
     useEffect(() => {
         (async function () {
-            if (globalData.user === undefined && !globalData.fetching && globalData.cookie) {
-                DisplayMessage("Sign in to continue.", "red");
-                navigate("/login/profile");
-
-            } else {
+            if (globalData.user !== undefined) {
                 const resp = await fetch(globalData.BH + "/cashien/fetch-trades",
                     {
                         method: "GET",
@@ -35,14 +31,16 @@ const Profile = () => {
                     const results = await resp.json();
                     SetTrades(results);
                 }
+            }else{
+                DisplayMessage("Sign in to continue", "red");
+                navigate("/login/profile");
             }
         })();
-        return ()=>{
+        return () => {
 
         }
     }, [globalData.cookie, globalData.BH, globalData.user, navigate, globalData.fetching]);
 
-    
     return (
         <div>
 
@@ -64,7 +62,6 @@ const Profile = () => {
                                             Complete your registration
                                         </Link>
                                 }
-
                             </div>
                         </div>
                         <div style={{ padding: "5vw 2vw", backgroundColor: globalData.cusBlack }}>
@@ -77,7 +74,7 @@ const Profile = () => {
                                     </span>
                                     <span onClick={() => {
                                         isVisible ? SetIV(false) : SetIV(true);
-                                    }} style={{cursor:"pointer"}}>
+                                    }} style={{ cursor: "pointer" }}>
                                         {isVisible ? <FaRegEye /> : <FaRegEyeSlash />}
                                     </span>
                                 </div>
@@ -96,12 +93,12 @@ const Profile = () => {
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "50% 50%", paddingTop: "3vh" }}>
                                 <div className="Center Vertically Horizontally">
-                                    <Link to="/transactions/deposit" style={{ background: globalData.cusGold, cursor:"pointer", color:"black", textDecoration:"none" }} className="button">
+                                    <Link to="/transactions/deposit" style={{ background: globalData.cusGold, cursor: "pointer", color: "black", textDecoration: "none" }} className="button">
                                         Deposit
                                     </Link>
                                 </div>
                                 <div className="Center Vertically Horizontally">
-                                    <Link to="/transactions/withdrawal" style={{ background: globalData.cusGray, color: "white" , cursor:"pointer", textDecoration:"none" }} className="button">
+                                    <Link to="/transactions/withdrawal" style={{ background: globalData.cusGray, color: "white", cursor: "pointer", textDecoration: "none" }} className="button">
                                         Withdraw
                                     </Link>
                                 </div>
@@ -137,7 +134,7 @@ const Profile = () => {
                                             <div style={{ background: "black" }}>
                                                 {
                                                     Trades.trades.map((item, index) =>
-                                                        <div style={{ border: "1px solid " + globalData.cusGold, padding: "1vw 3vw", marginBottom: "2vh", background: globalData.cusBlack, cursor:"pointer" }} key={index} onClick={() => { navigate("/trade/" + item['tradeId']) }}>
+                                                        <div style={{ border: "1px solid " + globalData.cusGold, padding: "1vw 3vw", marginBottom: "2vh", background: globalData.cusBlack, cursor: "pointer" }} key={index} onClick={() => { navigate("/trade/" + item['tradeId']) }}>
                                                             <div class="list-group-item list-group-item-action">
                                                                 <div class="d-flex w-100 justify-content-between">
                                                                     <h5 class="mb-1">@{item.buyerId === globalData.user.user ? item.sellerId : item.buyerId}</h5>

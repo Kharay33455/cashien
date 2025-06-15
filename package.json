@@ -1,5 +1,5 @@
 {
-  
+  "homepage": "https://cashien.online",
   "name": "cashien",
   "version": "0.1.0",
   "private": true,
@@ -45,7 +45,14 @@
     ]
   },
   "react-dotenv": {
-    "whitelist": []
+    "whitelist": [
+      "REACT_APP_ENV",
+      "REACT_APP_COMPNAME",
+      "REACT_APP_BH_PROD",
+      "REACT_APP_WS_PROD",
+      "REACT_APP_WS_DEV",
+      "REACT_APP_BH_DEV"
+    ]
   },
   "devDependencies": {
     "gh-pages": "^6.3.0"

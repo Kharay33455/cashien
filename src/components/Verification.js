@@ -51,6 +51,7 @@ const Verification = () => {
         });
 
         const result = await mail_resp.json();
+        console.log(result);
         if(mail_resp.status === 200){
             DisplayMessage(result['msg'], "green");
             SetSM(false);

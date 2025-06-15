@@ -30,13 +30,13 @@
   text-align: center;
   padding-top: 2vh;
   font-size: 0.8em;
-  font-weight: 700
+  font-weight: 700;
 }
 
 .WarningWrapper {
   background: #503718;
   color: #A78F6B;
-  width: 90vw;
+  width: 100%;
   margin-top: 2vh;
   border-radius: 1vw
 }
@@ -250,7 +250,8 @@ textarea.dark:focus {
 
 .MsgText {
   color: white;
-  padding: 1vh
+  padding: 1vh;
+  text-align:center;
 }
 
 .MsgTimer {
